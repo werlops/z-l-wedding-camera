@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zi Yan & Lawrence's Wedding Camera & Gallery</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #faf7f2; color: #333; text-align: center; padding: 20px 12px; display: flex; flex-direction: column; min-height: 100vh; align-items: center; }
+    
+    .card { background: #ffffff; border-radius: 20px; padding: 24px 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); max-width: 440px; width: 100%; border: 1px solid #eae2d6; margin-bottom: 24px; }
+    h1 { font-family: 'Georgia', serif; color: #4a3e3d; font-size: 26px; margin-bottom: 4px; font-weight: normal; }
+    p.subtitle { font-size: 13px; color: #8c7a6b; margin-bottom: 18px; text-transform: uppercase; letter-spacing: 1.5px; }
+    
+    .counter-badge { background-color: #f7f2eb; border: 1px solid #eae2d6; border-radius: 20px; padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #6f6053; margin-bottom: 20px; font-weight: 500; }
+    .counter-badge span { font-weight: 700; color: #4a3e3d; font-size: 15px; }
+
+    .input-group { margin-bottom: 16px; text-align: left; }
+    .input-group label { display: block; font-size: 12px; color: #6f6053; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .input-group input { width: 100%; padding: 14px 16px; border: 1px solid #d9d0c5; border-radius: 12px; font-size: 16px; background-color: #fdfbf7; color: #333; outline: none; }
+    
+    .btn { background-color: #8c7a6b; color: white; border: none; padding: 14px 20px; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s, transform 0.1s; }
+    .btn-secondary { background-color: #ffffff; color: #8c7a6b; border: 1px solid #8c7a6b; }
+    .btn-link { background: none; border: none; color: #8c7a6b; font-size: 13px; text-decoration: underline; cursor: pointer; padding: 8px; margin-top: 6px; }
+    input[type="file"] { display: none; }
+    
+    #status { margin-top: 12px; font-size: 14px; color: #666; word-break: break-word; line-height: 1.4; }
+    .spinner { display: none; margin: 12px auto; border: 4px solid #f3f3f3; border-top: 4px solid #8c7a6b; border-radius: 50%; width: 28px; height: 28px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    .preview { max-width: 100%; max-height: 180px; margin-top: 15px; border-radius: 12px; display: none; object-fit: cover; }
+    
+    /* Thank You Note Box */
+    .thank-you-box { display: none; background: #faf7f2; border: 1px dashed #d9d0c5; border-radius: 16px; padding: 20px 16px; margin-top: 18px; animation: fadeIn 0.4s ease-in-out; }
+    .thank-you-box .heart-icon { font-size: 32px; margin-bottom: 8px; animation: pulse 1.2s infinite alternate; display: inline-block; }
+    .thank-you-box h3 { font-family: 'Georgia', serif; font-size: 18px; color: #4a3e3d; margin-bottom: 6px; }
+    .thank-you-box p { font-size: 13px; color: #6f6053; line-height: 1.5; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.15); } }
+
+    /* Gallery Styles */
+    .section-title { font-family: 'Georgia', serif; font-size: 20px; color: #4a3e3d; margin: 10px 0 14px; display: flex; align-items: center; justify-content: space-between; width: 100%; }
+    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+    .gallery-item { position: relative; width: 100%; padding-top: 100%; border-radius: 10px; overflow: hidden; background-color: #eae2d6; cursor: pointer; }
+    .gallery-item img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+    .video-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; }
+
+    /* Lightbox Modal */
+    .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+    .modal img { max-width: 100%; max-height: 80vh; border-radius: 12px; }
+    .modal-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 28px; cursor: pointer; background: none; border: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Upload Card -->
+  <div class="card">
+    <h1>Zi Yan & Lawrence</h1>
+    <p class="subtitle">Wedding Memories</p>
+
+    <div class="counter-badge">
+      📸 <span id="photoCount">...</span> memories shared so far!
+    </div>
+
+    <div class="input-group">
+      <label for="guestName">Your Name</label>
+      <input type="text" id="guestName" placeholder="e.g. Sarah & Mark" onchange="saveGuestName(this.value)" />
+    </div>
+
+    <button class="btn" onclick="triggerInput('cameraPhotoInput')">📸 Take Photo</button>
+    <input type="file" id="cameraPhotoInput" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
+
+    <button class="btn" onclick="triggerInput('cameraVideoInput')">🎥 Record Video</button>
+    <input type="file" id="cameraVideoInput" accept="video/*" capture="environment" onchange="handleFileSelect(event)">
+
+    <button class="btn btn-secondary" onclick="triggerInput('galleryInput')">🖼️ Upload from Phone</button>
+    <input type="file" id="galleryInput" accept="image/*,video/*" onchange="handleFileSelect(event)">
+
+    <img id="imagePreview" class="preview" />
+    <div id="spinner" class="spinner"></div>
+    <div id="status">Enter your name and share a moment!</div>
+
+    <!-- Personalized Thank You Box -->
+    <div id="thankYouBox" class="thank-you-box">
+      <div class="heart-icon">❤️</div>
+      <h3 id="thankYouTitle">Thank You!</h3>
+      <p id="thankYouMessage">Your memory is now part of Zi Yan & Lawrence's wedding album. Feel free to add more throughout the night!</p>
+    </div>
+  </div>
+
+  <!-- Collective Album Section -->
+  <div class="card">
+    <div class="section-title">
+      <span>Collective Album</span>
+      <button class="btn-link" onclick="fetchGalleryData()">🔄 Refresh</button>
+    </div>
+
+    <div id="galleryGrid" class="gallery-grid">
+      <!-- Thumbnails load here dynamically -->
+    </div>
+  </div>
+
+  <!-- Lightbox Modal -->
+  <div id="lightbox" class="modal" onclick="closeLightbox()">
+    <button class="modal-close">&times;</button>
+    <div id="modalContent"></div>
+  </div>
+
+  <script>
+    // REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT WEB APP EXEC URL
+    const API_URL = "https://script.google.com/macros/s/AKfycbwN9iDPbM_5qg5zb2wArE1nlaE_PhqHScIH25m3-bE2e97QZCTNrQ9Cj3Hc667_SFxW/exec";
+
+    window.onload = function() {
+      const savedName = localStorage.getItem("wedding_guest_name");
+      if (savedName) document.getElementById("guestName").value = savedName;
+      fetchGalleryData();
+    };
+
+    function fetchGalleryData() {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById("photoCount").innerText = data.count;
+            renderGallery(data.items);
+          }
+        })
+        .catch(() => {
+          document.getElementById("galleryGrid").innerHTML = "<p style='grid-column: span 3; font-size: 13px; color: #888;'>Could not load album.</p>";
+        });
+    }
+
+    function renderGallery(items) {
+      const grid = document.getElementById("galleryGrid");
+      grid.innerHTML = "";
+
+      if (!items || items.length === 0) {
+        grid.innerHTML = "<p style='grid-column: span 3; font-size: 13px; color: #888;'>No photos yet. Be the first!</p>";
+        return;
+      }
+
+      items.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "gallery-item";
+        
+        if (item.mimeType.startsWith("video/")) {
+          div.innerHTML = `<span class="video-badge">🎥 Video</span><img src="${item.thumbnailUrl}" loading="lazy" onerror="this.src='https://via.placeholder.com/150?text=Video'" />`;
+          div.onclick = () => window.open(item.viewUrl, "_blank");
+        } else {
+          div.innerHTML = `<img src="${item.thumbnailUrl}" loading="lazy" />`;
+          div.onclick = () => openLightbox(item.fullUrl);
+        }
+        
+        grid.appendChild(div);
+      });
+    }
+
+    function openLightbox(url) {
+      const modal = document.getElementById("lightbox");
+      const content = document.getElementById("modalContent");
+      content.innerHTML = `<img src="${url}" />`;
+      modal.style.display = "flex";
+    }
+
+    function closeLightbox() {
+      document.getElementById("lightbox").style.display = "none";
+    }
+
+    function saveGuestName(val) {
+      localStorage.setItem("wedding_guest_name", val);
+    }
+
+    function triggerInput(inputId) {
+      const nameInput = document.getElementById("guestName");
+      if (!nameInput.value.trim()) {
+        alert("Please enter your name first so Ziyan & Lawrence know who uploaded it!");
+        nameInput.focus();
+        return;
+      }
+      document.getElementById(inputId).click();
+    }
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      const guestName = document.getElementById("guestName").value.trim();
+      if (!file) return;
+
+      const status = document.getElementById("status");
+      const spinner = document.getElementById("spinner");
+      const preview = document.getElementById("imagePreview");
+      const thankYouBox = document.getElementById("thankYouBox");
+
+      thankYouBox.style.display = "none";
+      status.innerText = "Preparing upload...";
+      spinner.style.display = "block";
+
+      if (file.type.startsWith("image/")) {
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = "block";
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        status.innerText = "Saving memory...";
+        
+        const payload = {
+          base64Data: e.target.result,
+          fileName: file.name,
+          mimeType: file.type,
+          guestName: guestName
+        };
+
+        // Send as text/plain to avoid preflight CORS restrictions
+        fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        })
+        .then(res => res.text())
+        .then(text => JSON.parse(text))
+        .then(data => {
+          spinner.style.display = "none";
+          if (data.success) {
+            status.innerText = "";
+            if (data.totalCount !== null) document.getElementById("photoCount").innerText = data.totalCount;
+            
+            // Show personalized thank you card
+            document.getElementById("thankYouTitle").innerText = "Thank You, " + guestName + "!";
+            thankYouBox.style.display = "block";
+
+            renderGallery(data.items);
+            event.target.value = "";
+          } else {
+            status.innerText = "Error: " + data.error;
+          }
+        })
+        .catch(err => {
+          spinner.style.display = "none";
+          status.innerText = "Upload failed: " + err.message;
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>

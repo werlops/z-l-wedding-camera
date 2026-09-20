@@ -61,7 +61,6 @@
     .video-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; z-index: 2; }
     .category-tag { position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.65); color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 8px; z-index: 2; font-weight: 500; }
     
-    /* Admin Controls in Gallery */
     .admin-delete-btn { position: absolute; top: 6px; left: 6px; background: #d9534f; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; z-index: 3; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
     .pagination-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 16px; padding-top: 12px; border-top: 1px solid #eae2d6; }
@@ -80,8 +79,7 @@
     .modal-progress-container { width: 100%; background-color: #f3f3f3; border-radius: 10px; overflow: hidden; height: 14px; }
     .modal-progress-bar { width: 0%; height: 100%; background-color: #8c7a6b; transition: width 0.2s linear; }
 
-    /* Admin Bar Indicator */
-    .admin-indicator { display: none; margin-top: 10px; padding: 6px 12px; background: #f2dede; border: 1px solid #ebccd1; color: #a94442; border-radius: 10px; font-size: 12px; font-weight: 600; }
+    .admin-indicator { display: none; margin-top: 10px; padding: 8px 12px; background: #f2dede; border: 1px solid #ebccd1; color: #a94442; border-radius: 10px; font-size: 12px; font-weight: 600; flex-direction: column; gap: 6px; }
   </style>
 </head>
 <body>
@@ -106,7 +104,6 @@
       <input type="text" id="guestName" placeholder="e.g. Sarah & Mark" onchange="saveGuestName(this.value)" />
     </div>
 
-    <!-- Category/Tag Selection -->
     <div class="input-group">
       <label for="uploadCategory">Moment Category</label>
       <select id="uploadCategory">
@@ -130,7 +127,6 @@
     <img id="imagePreview" class="preview" />
     <div id="status">Enter your name and share a moment!</div>
 
-    <!-- Personalized Thank You Box -->
     <div id="thankYouBox" class="thank-you-box">
       <div class="heart-icon">❤️</div>
       <h3 id="thankYouTitle">Thank You!</h3>
@@ -145,7 +141,6 @@
       <button id="btnRefresh" class="btn-link" onclick="fetchGalleryData()">🔄 Refresh</button>
     </div>
 
-    <!-- Category Filter Chips -->
     <div class="filter-bar">
       <div class="filter-chip active" onclick="filterGallery('All', this)">All</div>
       <div class="filter-chip" onclick="filterGallery('Ceremony', this)">💍 Ceremony</div>
@@ -156,14 +151,12 @@
     </div>
 
     <div id="adminIndicator" class="admin-indicator">
-      🛡️ Admin Mode Active
+      <div>🛡️ Admin Mode Active</div>
+      <button class="btn-link" onclick="openChangePinModal()" style="font-size: 11px; color: #a94442;">🔑 Change Admin PIN</button>
     </div>
 
-    <div id="galleryGrid" class="gallery-grid">
-      <!-- Thumbnails load here dynamically -->
-    </div>
+    <div id="galleryGrid" class="gallery-grid"></div>
 
-    <!-- Pagination Controls -->
     <div class="pagination-bar" id="paginationBar" style="display: none;">
       <button id="btnPrev" class="btn-nav" onclick="changePage(-1)">← Prev</button>
       <span class="page-info" id="pageInfo">Page 1 of 1</span>
@@ -173,13 +166,12 @@
 
   <button class="btn-link" onclick="openAdminModal()" style="margin-bottom: 20px; font-size: 11px; opacity: 0.6;">🔒 Admin Login</button>
 
-  <!-- Lightbox Modal -->
+  <!-- Modals -->
   <div id="lightbox" class="modal" onclick="closeLightbox()">
     <button class="modal-close">&times;</button>
     <div id="modalContent"></div>
   </div>
 
-  <!-- QR Share Modal -->
   <div id="qrModal" class="modal" onclick="closeQRModal()">
     <button class="modal-close">&times;</button>
     <div class="modal-card" onclick="event.stopPropagation()">
@@ -203,6 +195,24 @@
     </div>
   </div>
 
+  <!-- Change PIN Modal -->
+  <div id="changePinModal" class="modal" onclick="closeChangePinModal()">
+    <button class="modal-close">&times;</button>
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <h3 style="font-family: Georgia, serif; color: #4a3e3d; margin-bottom: 8px;">Change Admin PIN</h3>
+      <div class="input-group">
+        <label for="currentPin">Current PIN</label>
+        <input type="password" id="currentPin" placeholder="Current PIN" />
+      </div>
+      <div class="input-group">
+        <label for="newPin">New PIN</label>
+        <input type="password" id="newPin" placeholder="At least 4 digits" />
+      </div>
+      <button class="btn" onclick="submitPinChange()">Save New PIN</button>
+      <button class="btn btn-secondary" onclick="closeChangePinModal()" style="margin-bottom: 0;">Cancel</button>
+    </div>
+  </div>
+
   <!-- Upload Progress Modal -->
   <div id="uploadModal" class="upload-modal-overlay">
     <div class="upload-modal-card">
@@ -216,7 +226,6 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbwN9iDPbM_5qg5zb2wArE1nlaE_PhqHScIH25m3-bE2e97QZCTNrQ9Cj3Hc667_SFxW/exec";
-    const ADMIN_PASSCODE = "1234"; // Set your preferred admin passcode here
 
     // App State
     const ITEMS_PER_PAGE = 18;
@@ -225,8 +234,9 @@
     let filteredGalleryItems = [];
     let activeFilter = 'All';
     let isAdmin = false;
+    let activePasscode = "";
 
-    // Offline IndexedDB Storage Setup
+    // Offline Storage Setup
     let db;
     const dbRequest = indexedDB.open("WeddingAppDB", 1);
     dbRequest.onupgradeneeded = (e) => {
@@ -363,7 +373,7 @@
       document.getElementById("galleryGrid").scrollIntoView({ behavior: "smooth" });
     }
 
-    /* Admin Moderation Functions */
+    /* Admin Features */
     function openAdminModal() {
       document.getElementById("adminModal").style.display = "flex";
       document.getElementById("adminPasscode").value = "";
@@ -373,16 +383,69 @@
       document.getElementById("adminModal").style.display = "none";
     }
 
-    function verifyAdminPasscode() {
+    function openChangePinModal() {
+      document.getElementById("changePinModal").style.display = "flex";
+      document.getElementById("currentPin").value = "";
+      document.getElementById("newPin").value = "";
+    }
+
+    function closeChangePinModal() {
+      document.getElementById("changePinModal").style.display = "none";
+    }
+
+    async function verifyAdminPasscode() {
       const input = document.getElementById("adminPasscode").value;
-      if (input === ADMIN_PASSCODE) {
-        isAdmin = true;
-        document.getElementById("adminIndicator").style.display = "block";
-        closeAdminModal();
-        renderGalleryPage();
-        alert("Admin mode activated! You can now moderate and delete items.");
-      } else {
-        alert("Incorrect passcode.");
+      if (!input) return;
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "verifyAdminPin", passcode: input })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          isAdmin = true;
+          activePasscode = input;
+          document.getElementById("adminIndicator").style.display = "flex";
+          closeAdminModal();
+          renderGalleryPage();
+          alert("Admin mode activated!");
+        } else {
+          alert("Incorrect passcode.");
+        }
+      } catch (e) {
+        alert("Failed to verify passcode. Check internet connection.");
+      }
+    }
+
+    async function submitPinChange() {
+      const curPin = document.getElementById("currentPin").value;
+      const nPin = document.getElementById("newPin").value;
+
+      if (!curPin || !nPin) {
+        alert("Please fill in both PIN fields.");
+        return;
+      }
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "updateAdminPin", currentPin: curPin, newPin: nPin })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          activePasscode = nPin;
+          alert("Admin PIN updated successfully!");
+          closeChangePinModal();
+        } else {
+          alert("Error: " + (result.error || "Failed to update PIN."));
+        }
+      } catch (e) {
+        alert("Network error updating PIN.");
       }
     }
 
@@ -391,17 +454,16 @@
       if (!confirm("Are you sure you want to delete this photo/video?")) return;
 
       try {
-        const payload = { action: "deleteFile", fileId: fileId };
+        const payload = { action: "deleteFile", fileId: fileId, passcode: activePasscode };
         await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(payload)
         });
       } catch (err) {
-        console.warn("Backend delete trigger failed or unconfigured:", err);
+        console.warn("Backend delete request failed:", err);
       }
 
-      // Optimistic removal from client UI
       allGalleryItems.splice(index, 1);
       applyFilterAndRender();
     }
@@ -469,7 +531,6 @@
         preview.style.display = "none";
       }
 
-      // Offline Handling
       if (!navigator.onLine) {
         for (const file of files) {
           saveToOfflineQueue(file, guestName, category);

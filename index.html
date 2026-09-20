@@ -134,30 +134,33 @@
         });
     }
 
-    function renderGallery(items) {
-      const grid = document.getElementById("galleryGrid");
-      grid.innerHTML = "";
+function renderGallery(items) {
+  const grid = document.getElementById("galleryGrid");
+  grid.innerHTML = "";
 
-      if (!items || items.length === 0) {
-        grid.innerHTML = "<p style='grid-column: span 3; font-size: 13px; color: #888;'>No photos yet. Be the first!</p>";
-        return;
-      }
+  if (!items || items.length === 0) {
+    grid.innerHTML = "<p style='grid-column: span 3; font-size: 13px; color: #888;'>No photos yet. Be the first!</p>";
+    return;
+  }
 
-      items.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "gallery-item";
-        
-        if (item.mimeType.startsWith("video/")) {
-          div.innerHTML = `<span class="video-badge">🎥 Video</span><img src="${item.thumbnailUrl}" loading="lazy" onerror="this.src='https://via.placeholder.com/150?text=Video'" />`;
-          div.onclick = () => window.open(item.viewUrl, "_blank");
-        } else {
-          div.innerHTML = `<img src="${item.thumbnailUrl}" loading="lazy" />`;
-          div.onclick = () => openLightbox(item.fullUrl);
-        }
-        
-        grid.appendChild(div);
-      });
+  // Reverse the array copy so the newest uploads display first
+  const newestFirst = [...items].reverse();
+
+  newestFirst.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "gallery-item";
+    
+    if (item.mimeType.startsWith("video/")) {
+      div.innerHTML = `<span class="video-badge">🎥 Video</span><img src="${item.thumbnailUrl}" loading="lazy" onerror="this.src='https://via.placeholder.com/150?text=Video'" />`;
+      div.onclick = () => window.open(item.viewUrl, "_blank");
+    } else {
+      div.innerHTML = `<img src="${item.thumbnailUrl}" loading="lazy" />`;
+      div.onclick = () => openLightbox(item.fullUrl);
     }
+    
+    grid.appendChild(div);
+  });
+}
 
     function openLightbox(url) {
       const modal = document.getElementById("lightbox");

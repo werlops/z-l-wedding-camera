@@ -17,7 +17,7 @@
 
     .input-group { margin-bottom: 14px; text-align: left; }
     .input-group label { display: block; font-size: 12px; color: #6f6053; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .input-group input { width: 100%; padding: 12px 14px; border: 1px solid #d9d0c5; border-radius: 12px; font-size: 15px; background-color: #fdfbf7; color: #333; outline: none; }
+    .input-group input, .input-group select { width: 100%; padding: 12px 14px; border: 1px solid #d9d0c5; border-radius: 12px; font-size: 15px; background-color: #fdfbf7; color: #333; outline: none; }
     
     .btn { background-color: #8c7a6b; color: white; border: none; padding: 14px 20px; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s, opacity 0.2s; }
     .btn-secondary { background-color: #ffffff; color: #8c7a6b; border: 1px solid #8c7a6b; }
@@ -33,9 +33,7 @@
     input[type="file"] { display: none; }
     
     #status { margin-top: 12px; font-size: 14px; color: #666; word-break: break-word; line-height: 1.4; }
-    
     .offline-banner { display: none; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; font-size: 12px; padding: 8px 12px; border-radius: 10px; margin-bottom: 14px; font-weight: 500; }
-
     .preview { max-width: 100%; max-height: 180px; margin-top: 15px; border-radius: 12px; display: none; object-fit: cover; }
     
     .thank-you-box { display: none; background: #faf7f2; border: 1px dashed #d9d0c5; border-radius: 16px; padding: 20px 16px; margin-top: 18px; animation: fadeIn 0.4s ease-in-out; }
@@ -46,14 +44,23 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.15); } }
 
-    /* Gallery */
+    /* Gallery & Sorting */
     .section-title { font-family: 'Georgia', serif; font-size: 20px; color: #4a3e3d; margin: 10px 0 14px; display: flex; align-items: center; justify-content: space-between; width: 100%; }
+    
+    .sort-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 12px; color: #6f6053; }
+    .sort-select { padding: 4px 8px; border-radius: 8px; border: 1px solid #d9d0c5; background: #fdfbf7; font-size: 12px; outline: none; }
 
     .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; min-height: 100px; }
     .gallery-item { position: relative; width: 100%; padding-top: 100%; border-radius: 10px; overflow: hidden; background-color: #eae2d6; cursor: pointer; }
     .gallery-item img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+    
     .video-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; z-index: 2; }
     
+    /* Like/Reaction Overlay Button */
+    .like-btn { position: absolute; bottom: 6px; right: 6px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(2px); border: none; border-radius: 14px; padding: 3px 8px; font-size: 11px; font-weight: 700; color: #4a3e3d; cursor: pointer; z-index: 3; display: flex; align-items: center; gap: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: transform 0.15s; }
+    .like-btn:active { transform: scale(0.85); }
+    .like-btn.reacted { color: #e74c3c; background: #ffffff; }
+
     .admin-delete-btn { position: absolute; top: 6px; left: 6px; background: #d9534f; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; z-index: 3; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
     .pagination-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 16px; padding-top: 12px; border-top: 1px solid #eae2d6; }
@@ -63,7 +70,7 @@
     .modal img { max-width: 90%; max-height: 70vh; border-radius: 12px; }
     .modal-card { background: white; padding: 24px; border-radius: 20px; max-width: 320px; width: 90%; text-align: center; }
     .modal-card img { width: 200px; height: 200px; margin: 12px 0; }
-    .modal-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 28px; cursor: pointer; background: none; border: none; }
+    .modal-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 28px; cursor: pointer; background: none; border: none; z-index: 1001; }
 
     .upload-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 2000; justify-content: center; align-items: center; pointer-events: auto; }
     .upload-modal-card { background: #ffffff; padding: 28px 20px; border-radius: 20px; max-width: 340px; width: 88%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
@@ -72,8 +79,14 @@
     .modal-progress-container { width: 100%; background-color: #f3f3f3; border-radius: 10px; overflow: hidden; height: 14px; }
     .modal-progress-bar { width: 0%; height: 100%; background-color: #8c7a6b; transition: width 0.2s linear; }
 
-    .admin-indicator { display: none; margin-top: 10px; padding: 8px 12px; background: #f2dede; border: 1px solid #ebccd1; color: #a94442; border-radius: 10px; font-size: 12px; font-weight: 600; flex-direction: column; gap: 4px; }
-    .admin-controls-row { display: flex; justify-content: center; gap: 8px; }
+    .admin-indicator { display: none; margin-top: 10px; padding: 10px 12px; background: #f2dede; border: 1px solid #ebccd1; color: #a94442; border-radius: 10px; font-size: 12px; font-weight: 600; flex-direction: column; gap: 8px; }
+    .admin-controls-row { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    /* Fullscreen Slideshow Styles */
+    #slideshowModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 3000; justify-content: center; align-items: center; }
+    #slideshowContent { max-width: 95vw; max-height: 95vh; display: flex; justify-content: center; align-items: center; }
+    #slideshowContent img, #slideshowContent video { max-width: 95vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 0 30px rgba(255,255,255,0.1); object-fit: contain; }
+    .slideshow-counter { position: absolute; bottom: 20px; color: rgba(255,255,255,0.7); font-size: 14px; letter-spacing: 1px; }
   </style>
 </head>
 <body>
@@ -124,9 +137,18 @@
       <button id="btnRefresh" class="btn-link" onclick="fetchGalleryData()">🔄 Refresh</button>
     </div>
 
+    <div class="sort-bar">
+      <span>Sort photos:</span>
+      <select id="sortSelect" class="sort-select" onchange="handleSortChange(this.value)">
+        <option value="newest">Newest First</option>
+        <option value="mostLiked">Most Liked ❤️</option>
+      </select>
+    </div>
+
     <div id="adminIndicator" class="admin-indicator">
       <div>🛡️ Admin Mode Active</div>
       <div class="admin-controls-row">
+        <button class="btn btn-secondary" onclick="startSlideshow()" style="padding: 6px 14px; font-size: 12px; margin: 0; width: auto;">📺 Start Live Slideshow</button>
         <button class="btn-link" onclick="openChangePinModal()" style="font-size: 11px; color: #a94442;">🔑 Change PIN</button>
         <span style="color: #ebccd1;">|</span>
         <button class="btn-link" onclick="exitAdminMode()" style="font-size: 11px; color: #a94442; font-weight: bold;">🚪 Exit Admin Mode</button>
@@ -148,6 +170,12 @@
   <div id="lightbox" class="modal" onclick="closeLightbox()">
     <button class="modal-close">&times;</button>
     <div id="modalContent"></div>
+  </div>
+
+  <div id="slideshowModal">
+    <button class="modal-close" onclick="stopSlideshow()">&times;</button>
+    <div id="slideshowContent"></div>
+    <div class="slideshow-counter" id="slideshowCounter">1 / 1</div>
   </div>
 
   <div id="qrModal" class="modal" onclick="closeQRModal()">
@@ -206,8 +234,14 @@
     const ITEMS_PER_PAGE = 18;
     let currentPage = 1;
     let allGalleryItems = [];
+    let displayedItems = [];
+    let currentSort = "newest";
     let isAdmin = false;
     let activePasscode = "";
+
+    // Slideshow state
+    let slideshowTimer = null;
+    let slideshowIndex = 0;
 
     let db;
     const dbRequest = indexedDB.open("WeddingAppDB", 1);
@@ -255,7 +289,7 @@
           if (data.success) {
             document.getElementById("photoCount").innerText = data.count;
             allGalleryItems = (data.items || []).slice().reverse();
-            renderGalleryPage();
+            applySortAndRender();
           }
         })
         .catch(() => {
@@ -264,27 +298,84 @@
         });
     }
 
+    /* Guest Likes / Reactions Storage */
+    function getReactedMap() {
+      const raw = localStorage.getItem("wedding_reacted_items");
+      return raw ? JSON.parse(raw) : {};
+    }
+
+    function setReactedMap(map) {
+      localStorage.setItem("wedding_reacted_items", JSON.stringify(map));
+    }
+
+    async function toggleLike(e, fileId) {
+      e.stopPropagation();
+      const reactedMap = getReactedMap();
+      const isCurrentlyReacted = !!reactedMap[fileId];
+      const newReactedState = !isCurrentlyReacted;
+
+      // Update local storage tracking immediately (1 react per guest rule)
+      reactedMap[fileId] = newReactedState;
+      setReactedMap(reactedMap);
+
+      // Update in-memory item
+      const item = allGalleryItems.find(i => (i.fileId || i.id) === fileId);
+      if (item) {
+        item.likes = Math.max(0, (item.likes || 0) + (newReactedState ? 1 : -1));
+      }
+
+      applySortAndRender();
+
+      // Sync with Apps Script backend
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "toggleReaction", fileId: fileId, increment: newReactedState })
+        });
+      } catch (err) {
+        console.warn("Failed to sync like count:", err);
+      }
+    }
+
+    function handleSortChange(sortValue) {
+      currentSort = sortValue;
+      currentPage = 1;
+      applySortAndRender();
+    }
+
+    function applySortAndRender() {
+      displayedItems = [...allGalleryItems];
+      if (currentSort === "mostLiked") {
+        displayedItems.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+      }
+      renderGalleryPage();
+    }
+
     function renderGalleryPage() {
       const grid = document.getElementById("galleryGrid");
       const paginationBar = document.getElementById("paginationBar");
       grid.innerHTML = "";
 
-      if (!allGalleryItems || allGalleryItems.length === 0) {
+      if (!displayedItems || displayedItems.length === 0) {
         grid.innerHTML = "<p style='grid-column: span 3; font-size: 13px; color: #888;'>No photos in the album yet.</p>";
         paginationBar.style.display = "none";
         return;
       }
 
-      const totalPages = Math.ceil(allGalleryItems.length / ITEMS_PER_PAGE);
+      const totalPages = Math.ceil(displayedItems.length / ITEMS_PER_PAGE);
       if (currentPage > totalPages) currentPage = totalPages;
       if (currentPage < 1) currentPage = 1;
 
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-      const pageItems = allGalleryItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+      const pageItems = displayedItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+      const reactedMap = getReactedMap();
 
       pageItems.forEach((item, index) => {
         const div = document.createElement("div");
         div.className = "gallery-item";
+        const fId = item.fileId || item.id;
+        const isReacted = !!reactedMap[fId];
 
         let mediaHtml = "";
         if (item.mimeType.startsWith("video/")) {
@@ -293,8 +384,11 @@
           mediaHtml = `<img src="${item.thumbnailUrl}" loading="lazy" />`;
         }
 
+        // Like/Heart overlay button
+        mediaHtml += `<button class="like-btn ${isReacted ? 'reacted' : ''}" onclick="toggleLike(event, '${fId}')">${isReacted ? '❤️' : '♡'} ${item.likes || 0}</button>`;
+
         if (isAdmin) {
-          mediaHtml += `<button class="admin-delete-btn" onclick="deleteItem(event, '${item.fileId || item.id}', ${startIndex + index})">&times;</button>`;
+          mediaHtml += `<button class="admin-delete-btn" onclick="deleteItem(event, '${fId}', ${startIndex + index})">&times;</button>`;
         }
 
         div.innerHTML = mediaHtml;
@@ -325,7 +419,46 @@
       document.getElementById("galleryGrid").scrollIntoView({ behavior: "smooth" });
     }
 
-    /* Admin Features */
+    /* Admin Live Slideshow Mode */
+    function startSlideshow() {
+      if (!allGalleryItems || allGalleryItems.length === 0) {
+        alert("No photos or videos available for slideshow.");
+        return;
+      }
+      slideshowIndex = 0;
+      document.getElementById("slideshowModal").style.display = "flex";
+      showSlideshowItem();
+
+      // Rotate item every 5 seconds
+      if (slideshowTimer) clearInterval(slideshowTimer);
+      slideshowTimer = setInterval(() => {
+        slideshowIndex = (slideshowIndex + 1) % allGalleryItems.length;
+        showSlideshowItem();
+      }, 5000);
+    }
+
+    function showSlideshowItem() {
+      const item = allGalleryItems[slideshowIndex];
+      const container = document.getElementById("slideshowContent");
+      const counter = document.getElementById("slideshowCounter");
+
+      if (!item) return;
+
+      if (item.mimeType.startsWith("video/")) {
+        container.innerHTML = `<video src="${item.fullUrl}" autoplay loop muted playsinline></video>`;
+      } else {
+        container.innerHTML = `<img src="${item.fullUrl}" />`;
+      }
+      counter.innerText = `${slideshowIndex + 1} / ${allGalleryItems.length}`;
+    }
+
+    function stopSlideshow() {
+      if (slideshowTimer) clearInterval(slideshowTimer);
+      document.getElementById("slideshowModal").style.display = "none";
+      document.getElementById("slideshowContent").innerHTML = "";
+    }
+
+    /* Admin Access & Passcode */
     function openAdminModal() {
       document.getElementById("adminModal").style.display = "flex";
       document.getElementById("adminPasscode").value = "";
@@ -349,7 +482,7 @@
       isAdmin = false;
       activePasscode = "";
       document.getElementById("adminIndicator").style.display = "none";
-      renderGalleryPage();
+      applySortAndRender();
       alert("Exited Admin Mode.");
     }
 
@@ -370,7 +503,7 @@
           activePasscode = input;
           document.getElementById("adminIndicator").style.display = "flex";
           closeAdminModal();
-          renderGalleryPage();
+          applySortAndRender();
           alert("Admin mode activated!");
         } else {
           alert("Incorrect passcode.");
@@ -425,7 +558,7 @@
       }
 
       allGalleryItems.splice(index, 1);
-      renderGalleryPage();
+      applySortAndRender();
     }
 
     function openLightbox(url) {

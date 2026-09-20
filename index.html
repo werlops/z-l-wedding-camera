@@ -39,10 +39,6 @@
     /* Offline Queue Alert Banner */
     .offline-banner { display: none; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; font-size: 12px; padding: 8px 12px; border-radius: 10px; margin-bottom: 14px; font-weight: 500; }
 
-    /* Progress Bar */
-    .progress-container { display: none; width: 100%; background-color: #f3f3f3; border-radius: 10px; margin-top: 15px; overflow: hidden; height: 12px; }
-    .progress-bar { width: 0%; height: 100%; background-color: #8c7a6b; transition: width 0.2s; }
-
     .preview { max-width: 100%; max-height: 180px; margin-top: 15px; border-radius: 12px; display: none; object-fit: cover; }
     
     /* Thank You Note Box */
@@ -71,6 +67,61 @@
     .modal-card { background: white; padding: 24px; border-radius: 20px; max-width: 320px; text-align: center; }
     .modal-card img { width: 200px; height: 200px; margin: 12px 0; }
     .modal-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 28px; cursor: pointer; background: none; border: none; }
+
+    /* Upload Progress Modal Overlay */
+    .upload-modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      pointer-events: auto;
+    }
+
+    .upload-modal-card {
+      background: #ffffff;
+      padding: 28px 20px;
+      border-radius: 20px;
+      max-width: 340px;
+      width: 88%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .upload-modal-card h3 {
+      font-family: 'Georgia', serif;
+      color: #4a3e3d;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .upload-modal-card p {
+      font-size: 13px;
+      color: #6f6053;
+      margin-bottom: 16px;
+      word-break: break-word;
+    }
+
+    .modal-progress-container {
+      width: 100%;
+      background-color: #f3f3f3;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 14px;
+    }
+
+    .modal-progress-bar {
+      width: 0%;
+      height: 100%;
+      background-color: #8c7a6b;
+      transition: width 0.2s linear;
+    }
   </style>
 </head>
 <body>
@@ -105,9 +156,6 @@
     <input type="file" id="galleryInput" accept="image/*,video/*" multiple onchange="handleFileSelect(event)">
 
     <img id="imagePreview" class="preview" />
-    <div class="progress-container" id="progressContainer">
-      <div class="progress-bar" id="progressBar"></div>
-    </div>
     <div id="status">Enter your name and share a moment!</div>
 
     <!-- Personalized Thank You Box -->
@@ -151,6 +199,17 @@
       <p style="font-size: 12px; color: #6f6053; margin-top: 4px;">Point camera to upload photos</p>
       <img id="qrCodeImg" src="" alt="QR Code" />
       <button class="btn btn-secondary" onclick="closeQRModal()" style="margin-bottom: 0;">Close</button>
+    </div>
+  </div>
+
+  <!-- Upload Progress Modal -->
+  <div id="uploadModal" class="upload-modal-overlay">
+    <div class="upload-modal-card">
+      <h3>Uploading...</h3>
+      <p id="uploadModalStatus">Preparing upload...</p>
+      <div class="modal-progress-container">
+        <div id="uploadModalProgressBar" class="modal-progress-bar"></div>
+      </div>
     </div>
   </div>
 
@@ -320,14 +379,16 @@
       setActionButtonsDisabled(true);
 
       const status = document.getElementById("status");
-      const progressContainer = document.getElementById("progressContainer");
-      const progressBar = document.getElementById("progressBar");
       const thankYouBox = document.getElementById("thankYouBox");
       const preview = document.getElementById("imagePreview");
+      const uploadModal = document.getElementById("uploadModal");
+      const uploadModalStatus = document.getElementById("uploadModalStatus");
+      const uploadModalProgressBar = document.getElementById("uploadModalProgressBar");
 
       thankYouBox.style.display = "none";
-      progressContainer.style.display = "block";
-      progressBar.style.width = "0%";
+      uploadModalProgressBar.style.width = "0%";
+      uploadModalStatus.innerText = "Preparing upload...";
+      uploadModal.style.display = "flex";
 
       if (files.length === 1 && files[0].type.startsWith("image/")) {
         preview.src = URL.createObjectURL(files[0]);
@@ -341,8 +402,8 @@
         for (const file of files) {
           saveToOfflineQueue(file, guestName);
         }
+        uploadModal.style.display = "none";
         status.innerText = "Saved offline! Upload will complete automatically when connection returns.";
-        progressContainer.style.display = "none";
         preview.style.display = "none";
         setActionButtonsDisabled(false);
         return;
@@ -352,7 +413,8 @@
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        status.innerText = `Preparing ${i + 1} of ${files.length}...`;
+        uploadModalStatus.innerText = `Preparing ${i + 1} of ${files.length}: ${file.name}`;
+        uploadModalProgressBar.style.width = "0%";
 
         try {
           const sessionPayload = {
@@ -374,8 +436,8 @@
             throw new Error(sessionData.error || "Could not start upload session");
           }
 
-          status.innerText = `Uploading ${i + 1} of ${files.length}: ${file.name}`;
-          await uploadFileChunks(file, sessionData.uploadUrl, progressBar);
+          uploadModalStatus.innerText = `Uploading ${i + 1} of ${files.length}: ${file.name}`;
+          await uploadFileChunks(file, sessionData.uploadUrl, uploadModalProgressBar);
 
           successCount++;
         } catch (err) {
@@ -384,7 +446,7 @@
         }
       }
 
-      progressContainer.style.display = "none";
+      uploadModal.style.display = "none";
       preview.style.display = "none";
 
       if (successCount > 0) {

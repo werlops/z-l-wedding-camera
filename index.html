@@ -79,7 +79,8 @@
     .modal-progress-container { width: 100%; background-color: #f3f3f3; border-radius: 10px; overflow: hidden; height: 14px; }
     .modal-progress-bar { width: 0%; height: 100%; background-color: #8c7a6b; transition: width 0.2s linear; }
 
-    .admin-indicator { display: none; margin-top: 10px; padding: 8px 12px; background: #f2dede; border: 1px solid #ebccd1; color: #a94442; border-radius: 10px; font-size: 12px; font-weight: 600; flex-direction: column; gap: 6px; }
+    .admin-indicator { display: none; margin-top: 10px; padding: 8px 12px; background: #f2dede; border: 1px solid #ebccd1; color: #a94442; border-radius: 10px; font-size: 12px; font-weight: 600; flex-direction: column; gap: 4px; }
+    .admin-controls-row { display: flex; justify-content: center; gap: 8px; }
   </style>
 </head>
 <body>
@@ -144,13 +145,17 @@
       <div class="filter-chip active" onclick="filterGallery('All', this)">All</div>
       <div class="filter-chip" onclick="filterGallery('Ceremony', this)">💍 Ceremony</div>
       <div class="filter-chip" onclick="filterGallery('Reception', this)">🥂 Reception</div>
-      <div class="filter-chip" onclick="filterGallery('Dance', this)">💃 Party</div>
+      <div class="filter-chip" onclick="filterGallery('Dance', this)">💃 Dance</div>
       <div class="filter-chip" onclick="filterGallery('General', this)">✨ General</div>
     </div>
 
     <div id="adminIndicator" class="admin-indicator">
       <div>🛡️ Admin Mode Active</div>
-      <button class="btn-link" onclick="openChangePinModal()" style="font-size: 11px; color: #a94442;">🔑 Change Admin PIN</button>
+      <div class="admin-controls-row">
+        <button class="btn-link" onclick="openChangePinModal()" style="font-size: 11px; color: #a94442;">🔑 Change PIN</button>
+        <span style="color: #ebccd1;">|</span>
+        <button class="btn-link" onclick="exitAdminMode()" style="font-size: 11px; color: #a94442; font-weight: bold;">🚪 Exit Admin Mode</button>
+      </div>
     </div>
 
     <div id="galleryGrid" class="gallery-grid"></div>
@@ -180,7 +185,6 @@
     </div>
   </div>
 
-  <!-- Admin Passcode Modal -->
   <div id="adminModal" class="modal" onclick="closeAdminModal()">
     <button class="modal-close">&times;</button>
     <div class="modal-card" onclick="event.stopPropagation()">
@@ -193,7 +197,6 @@
     </div>
   </div>
 
-  <!-- Change PIN Modal -->
   <div id="changePinModal" class="modal" onclick="closeChangePinModal()">
     <button class="modal-close">&times;</button>
     <div class="modal-card" onclick="event.stopPropagation()">
@@ -211,7 +214,6 @@
     </div>
   </div>
 
-  <!-- Upload Progress Modal -->
   <div id="uploadModal" class="upload-modal-overlay">
     <div class="upload-modal-card">
       <h3>Uploading...</h3>
@@ -234,7 +236,6 @@
     let isAdmin = false;
     let activePasscode = "";
 
-    // Offline Storage Setup
     let db;
     const dbRequest = indexedDB.open("WeddingAppDB", 1);
     dbRequest.onupgradeneeded = (e) => {
@@ -389,6 +390,14 @@
 
     function closeChangePinModal() {
       document.getElementById("changePinModal").style.display = "none";
+    }
+
+    function exitAdminMode() {
+      isAdmin = false;
+      activePasscode = "";
+      document.getElementById("adminIndicator").style.display = "none";
+      renderGalleryPage();
+      alert("Exited Admin Mode.");
     }
 
     async function verifyAdminPasscode() {

@@ -17,31 +17,28 @@
 
     .input-group { margin-bottom: 14px; text-align: left; }
     .input-group label { display: block; font-size: 12px; color: #6f6053; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .input-group input { width: 100%; padding: 12px 14px; border: 1px solid #d9d0c5; border-radius: 12px; font-size: 15px; background-color: #fdfbf7; color: #333; outline: none; }
+    .input-group input, .input-group select { width: 100%; padding: 12px 14px; border: 1px solid #d9d0c5; border-radius: 12px; font-size: 15px; background-color: #fdfbf7; color: #333; outline: none; }
     
     .btn { background-color: #8c7a6b; color: white; border: none; padding: 14px 20px; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s, opacity 0.2s; }
     .btn-secondary { background-color: #ffffff; color: #8c7a6b; border: 1px solid #8c7a6b; }
     .btn-share { background-color: #f7f2eb; color: #4a3e3d; border: 1px solid #d9d0c5; margin-bottom: 18px; }
+    .btn-danger { background-color: #d9534f; color: white; border: none; }
     .btn-link { background: none; border: none; color: #8c7a6b; font-size: 13px; text-decoration: underline; cursor: pointer; padding: 8px; transition: opacity 0.2s; }
     
-    /* Pagination Button Styling */
     .btn-nav { background-color: #f7f2eb; border: 1px solid #d9d0c5; color: #4a3e3d; border-radius: 20px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s, opacity 0.2s; }
     .btn-nav:hover:not(:disabled) { background-color: #eae2d6; }
     .btn-nav:disabled { opacity: 0.3; cursor: not-allowed; }
 
-    /* Disabled state styling for primary buttons */
     .btn:disabled, .btn-link:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 
     input[type="file"] { display: none; }
     
     #status { margin-top: 12px; font-size: 14px; color: #666; word-break: break-word; line-height: 1.4; }
     
-    /* Offline Queue Alert Banner */
     .offline-banner { display: none; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; font-size: 12px; padding: 8px 12px; border-radius: 10px; margin-bottom: 14px; font-weight: 500; }
 
     .preview { max-width: 100%; max-height: 180px; margin-top: 15px; border-radius: 12px; display: none; object-fit: cover; }
     
-    /* Thank You Note Box */
     .thank-you-box { display: none; background: #faf7f2; border: 1px dashed #d9d0c5; border-radius: 16px; padding: 20px 16px; margin-top: 18px; animation: fadeIn 0.4s ease-in-out; }
     .thank-you-box .heart-icon { font-size: 32px; margin-bottom: 8px; animation: pulse 1.2s infinite alternate; display: inline-block; }
     .thank-you-box h3 { font-family: 'Georgia', serif; font-size: 18px; color: #4a3e3d; margin-bottom: 6px; }
@@ -50,78 +47,41 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.15); } }
 
-    /* Gallery Styles */
+    /* Gallery & Filters */
     .section-title { font-family: 'Georgia', serif; font-size: 20px; color: #4a3e3d; margin: 10px 0 14px; display: flex; align-items: center; justify-content: space-between; width: 100%; }
+    
+    .filter-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; width: 100%; scrollbar-width: none; }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-chip { background-color: #f7f2eb; border: 1px solid #d9d0c5; color: #6f6053; font-size: 12px; padding: 6px 12px; border-radius: 16px; white-space: nowrap; cursor: pointer; transition: all 0.2s; }
+    .filter-chip.active { background-color: #8c7a6b; color: white; border-color: #8c7a6b; }
+
     .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; min-height: 100px; }
     .gallery-item { position: relative; width: 100%; padding-top: 100%; border-radius: 10px; overflow: hidden; background-color: #eae2d6; cursor: pointer; }
     .gallery-item img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
     .video-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; z-index: 2; }
+    .category-tag { position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.65); color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 8px; z-index: 2; font-weight: 500; }
+    
+    /* Admin Controls in Gallery */
+    .admin-delete-btn { position: absolute; top: 6px; left: 6px; background: #d9534f; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; z-index: 3; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-    /* Pagination Bar */
     .pagination-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 16px; padding-top: 12px; border-top: 1px solid #eae2d6; }
     .page-info { font-size: 13px; color: #6f6053; font-weight: 500; }
 
-    /* Lightbox & QR Modal */
     .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
     .modal img { max-width: 90%; max-height: 70vh; border-radius: 12px; }
-    .modal-card { background: white; padding: 24px; border-radius: 20px; max-width: 320px; text-align: center; }
+    .modal-card { background: white; padding: 24px; border-radius: 20px; max-width: 320px; width: 90%; text-align: center; }
     .modal-card img { width: 200px; height: 200px; margin: 12px 0; }
     .modal-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 28px; cursor: pointer; background: none; border: none; }
 
-    /* Upload Progress Modal Overlay */
-    .upload-modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(4px);
-      z-index: 2000;
-      justify-content: center;
-      align-items: center;
-      pointer-events: auto;
-    }
+    .upload-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 2000; justify-content: center; align-items: center; pointer-events: auto; }
+    .upload-modal-card { background: #ffffff; padding: 28px 20px; border-radius: 20px; max-width: 340px; width: 88%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    .upload-modal-card h3 { font-family: 'Georgia', serif; color: #4a3e3d; font-size: 20px; margin-bottom: 8px; }
+    .upload-modal-card p { font-size: 13px; color: #6f6053; margin-bottom: 16px; word-break: break-word; }
+    .modal-progress-container { width: 100%; background-color: #f3f3f3; border-radius: 10px; overflow: hidden; height: 14px; }
+    .modal-progress-bar { width: 0%; height: 100%; background-color: #8c7a6b; transition: width 0.2s linear; }
 
-    .upload-modal-card {
-      background: #ffffff;
-      padding: 28px 20px;
-      border-radius: 20px;
-      max-width: 340px;
-      width: 88%;
-      text-align: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    }
-
-    .upload-modal-card h3 {
-      font-family: 'Georgia', serif;
-      color: #4a3e3d;
-      font-size: 20px;
-      margin-bottom: 8px;
-    }
-
-    .upload-modal-card p {
-      font-size: 13px;
-      color: #6f6053;
-      margin-bottom: 16px;
-      word-break: break-word;
-    }
-
-    .modal-progress-container {
-      width: 100%;
-      background-color: #f3f3f3;
-      border-radius: 10px;
-      overflow: hidden;
-      height: 14px;
-    }
-
-    .modal-progress-bar {
-      width: 0%;
-      height: 100%;
-      background-color: #8c7a6b;
-      transition: width 0.2s linear;
-    }
+    /* Admin Bar Indicator */
+    .admin-indicator { display: none; margin-top: 10px; padding: 6px 12px; background: #f2dede; border: 1px solid #ebccd1; color: #a94442; border-radius: 10px; font-size: 12px; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -144,6 +104,18 @@
     <div class="input-group">
       <label for="guestName">Your Name</label>
       <input type="text" id="guestName" placeholder="e.g. Sarah & Mark" onchange="saveGuestName(this.value)" />
+    </div>
+
+    <!-- Category/Tag Selection -->
+    <div class="input-group">
+      <label for="uploadCategory">Moment Category</label>
+      <select id="uploadCategory">
+        <option value="General">✨ General</option>
+        <option value="Ceremony">💍 Ceremony</option>
+        <option value="Reception">🥂 Reception</option>
+        <option value="Speeches">🎤 Speeches</option>
+        <option value="Party">💃 Party & Dance</option>
+      </select>
     </div>
 
     <button id="btnPhoto" class="btn" onclick="triggerInput('cameraPhotoInput')">📸 Take Photo</button>
@@ -173,6 +145,20 @@
       <button id="btnRefresh" class="btn-link" onclick="fetchGalleryData()">🔄 Refresh</button>
     </div>
 
+    <!-- Category Filter Chips -->
+    <div class="filter-bar">
+      <div class="filter-chip active" onclick="filterGallery('All', this)">All</div>
+      <div class="filter-chip" onclick="filterGallery('Ceremony', this)">💍 Ceremony</div>
+      <div class="filter-chip" onclick="filterGallery('Reception', this)">🥂 Reception</div>
+      <div class="filter-chip" onclick="filterGallery('Speeches', this)">🎤 Speeches</div>
+      <div class="filter-chip" onclick="filterGallery('Party', this)">💃 Party</div>
+      <div class="filter-chip" onclick="filterGallery('General', this)">✨ General</div>
+    </div>
+
+    <div id="adminIndicator" class="admin-indicator">
+      🛡️ Admin Mode Active
+    </div>
+
     <div id="galleryGrid" class="gallery-grid">
       <!-- Thumbnails load here dynamically -->
     </div>
@@ -184,6 +170,8 @@
       <button id="btnNext" class="btn-nav" onclick="changePage(1)">Next →</button>
     </div>
   </div>
+
+  <button class="btn-link" onclick="openAdminModal()" style="margin-bottom: 20px; font-size: 11px; opacity: 0.6;">🔒 Admin Login</button>
 
   <!-- Lightbox Modal -->
   <div id="lightbox" class="modal" onclick="closeLightbox()">
@@ -202,6 +190,19 @@
     </div>
   </div>
 
+  <!-- Admin Passcode Modal -->
+  <div id="adminModal" class="modal" onclick="closeAdminModal()">
+    <button class="modal-close">&times;</button>
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <h3 style="font-family: Georgia, serif; color: #4a3e3d; margin-bottom: 8px;">Admin Passcode</h3>
+      <div class="input-group">
+        <input type="password" id="adminPasscode" placeholder="Enter PIN (Default: 1234)" />
+      </div>
+      <button class="btn" onclick="verifyAdminPasscode()">Unlock Admin Mode</button>
+      <button class="btn btn-secondary" onclick="closeAdminModal()" style="margin-bottom: 0;">Cancel</button>
+    </div>
+  </div>
+
   <!-- Upload Progress Modal -->
   <div id="uploadModal" class="upload-modal-overlay">
     <div class="upload-modal-card">
@@ -215,11 +216,15 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbwN9iDPbM_5qg5zb2wArE1nlaE_PhqHScIH25m3-bE2e97QZCTNrQ9Cj3Hc667_SFxW/exec";
+    const ADMIN_PASSCODE = "1234"; // Set your preferred admin passcode here
 
-    // Pagination State
+    // App State
     const ITEMS_PER_PAGE = 18;
     let currentPage = 1;
     let allGalleryItems = [];
+    let filteredGalleryItems = [];
+    let activeFilter = 'All';
+    let isAdmin = false;
 
     // Offline IndexedDB Storage Setup
     let db;
@@ -268,8 +273,7 @@
           if (data.success) {
             document.getElementById("photoCount").innerText = data.count;
             allGalleryItems = (data.items || []).slice().reverse();
-            currentPage = 1;
-            renderGalleryPage();
+            applyFilterAndRender();
           }
         })
         .catch(() => {
@@ -278,25 +282,42 @@
         });
     }
 
+    function filterGallery(category, el) {
+      activeFilter = category;
+      document.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active'));
+      if (el) el.classList.add('active');
+      currentPage = 1;
+      applyFilterAndRender();
+    }
+
+    function applyFilterAndRender() {
+      if (activeFilter === 'All') {
+        filteredGalleryItems = [...allGalleryItems];
+      } else {
+        filteredGalleryItems = allGalleryItems.filter(item => (item.category || 'General') === activeFilter);
+      }
+      renderGalleryPage();
+    }
+
     function renderGalleryPage() {
       const grid = document.getElementById("galleryGrid");
       const paginationBar = document.getElementById("paginationBar");
       grid.innerHTML = "";
 
-      if (!allGalleryItems || allGalleryItems.length === 0) {
-        grid.innerHTML = "<p style='grid-column: span 3; font-size: 13px; color: #888;'>No photos yet. Be the first!</p>";
+      if (!filteredGalleryItems || filteredGalleryItems.length === 0) {
+        grid.innerHTML = "<p style='grid-column: span 3; font-size: 13px; color: #888;'>No photos in this category yet.</p>";
         paginationBar.style.display = "none";
         return;
       }
 
-      const totalPages = Math.ceil(allGalleryItems.length / ITEMS_PER_PAGE);
+      const totalPages = Math.ceil(filteredGalleryItems.length / ITEMS_PER_PAGE);
       if (currentPage > totalPages) currentPage = totalPages;
       if (currentPage < 1) currentPage = 1;
 
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-      const pageItems = allGalleryItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+      const pageItems = filteredGalleryItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-      pageItems.forEach(item => {
+      pageItems.forEach((item, index) => {
         const div = document.createElement("div");
         div.className = "gallery-item";
 
@@ -305,6 +326,13 @@
           mediaHtml = `<span class="video-badge">🎥 Video</span><img src="${item.thumbnailUrl}" loading="lazy" onerror="this.src='https://via.placeholder.com/150?text=Video'" />`;
         } else {
           mediaHtml = `<img src="${item.thumbnailUrl}" loading="lazy" />`;
+        }
+
+        const tagText = item.category ? item.category : "General";
+        mediaHtml += `<span class="category-tag">${tagText}</span>`;
+
+        if (isAdmin) {
+          mediaHtml += `<button class="admin-delete-btn" onclick="deleteItem(event, '${item.fileId || item.id}', ${startIndex + index})">&times;</button>`;
         }
 
         div.innerHTML = mediaHtml;
@@ -333,6 +361,49 @@
       currentPage += direction;
       renderGalleryPage();
       document.getElementById("galleryGrid").scrollIntoView({ behavior: "smooth" });
+    }
+
+    /* Admin Moderation Functions */
+    function openAdminModal() {
+      document.getElementById("adminModal").style.display = "flex";
+      document.getElementById("adminPasscode").value = "";
+    }
+
+    function closeAdminModal() {
+      document.getElementById("adminModal").style.display = "none";
+    }
+
+    function verifyAdminPasscode() {
+      const input = document.getElementById("adminPasscode").value;
+      if (input === ADMIN_PASSCODE) {
+        isAdmin = true;
+        document.getElementById("adminIndicator").style.display = "block";
+        closeAdminModal();
+        renderGalleryPage();
+        alert("Admin mode activated! You can now moderate and delete items.");
+      } else {
+        alert("Incorrect passcode.");
+      }
+    }
+
+    async function deleteItem(e, fileId, index) {
+      e.stopPropagation();
+      if (!confirm("Are you sure you want to delete this photo/video?")) return;
+
+      try {
+        const payload = { action: "deleteFile", fileId: fileId };
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.warn("Backend delete trigger failed or unconfigured:", err);
+      }
+
+      // Optimistic removal from client UI
+      allGalleryItems.splice(index, 1);
+      applyFilterAndRender();
     }
 
     function openLightbox(url) {
@@ -374,6 +445,7 @@
     async function handleFileSelect(event) {
       const files = Array.from(event.target.files);
       const guestName = document.getElementById("guestName").value.trim();
+      const category = document.getElementById("uploadCategory").value;
       if (!files || files.length === 0) return;
 
       setActionButtonsDisabled(true);
@@ -400,7 +472,7 @@
       // Offline Handling
       if (!navigator.onLine) {
         for (const file of files) {
-          saveToOfflineQueue(file, guestName);
+          saveToOfflineQueue(file, guestName, category);
         }
         uploadModal.style.display = "none";
         status.innerText = "Saved offline! Upload will complete automatically when connection returns.";
@@ -421,7 +493,8 @@
             action: "createResumableUpload",
             fileName: file.name,
             mimeType: file.type || "application/octet-stream",
-            guestName: guestName
+            guestName: guestName,
+            category: category
           };
 
           const sessionRes = await fetch(API_URL, {
@@ -442,7 +515,7 @@
           successCount++;
         } catch (err) {
           console.error("Failed to upload file, saving to offline retry queue:", file.name, err);
-          saveToOfflineQueue(file, guestName);
+          saveToOfflineQueue(file, guestName, category);
         }
       }
 
@@ -463,13 +536,14 @@
       setActionButtonsDisabled(false);
     }
 
-    function saveToOfflineQueue(file, guestName) {
+    function saveToOfflineQueue(file, guestName, category) {
       if (!db) return;
       const tx = db.transaction("uploadQueue", "readwrite");
       const store = tx.objectStore("uploadQueue");
       store.add({
         file: file,
         guestName: guestName,
+        category: category,
         timestamp: Date.now()
       });
     }
@@ -490,7 +564,8 @@
               action: "createResumableUpload",
               fileName: item.file.name,
               mimeType: item.file.type || "application/octet-stream",
-              guestName: item.guestName
+              guestName: item.guestName,
+              category: item.category || "General"
             };
 
             const sessionRes = await fetch(API_URL, {
@@ -504,7 +579,6 @@
               const dummyBar = document.createElement("div");
               await uploadFileChunks(item.file, sessionData.uploadUrl, dummyBar);
 
-              // Remove from IndexedDB on success
               const delTx = db.transaction("uploadQueue", "readwrite");
               delTx.objectStore("uploadQueue").delete(item.id);
             }

@@ -19,9 +19,13 @@
     .input-group label { display: block; font-size: 12px; color: #6f6053; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
     .input-group input { width: 100%; padding: 14px 16px; border: 1px solid #d9d0c5; border-radius: 12px; font-size: 16px; background-color: #fdfbf7; color: #333; outline: none; }
     
-    .btn { background-color: #8c7a6b; color: white; border: none; padding: 14px 20px; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s, transform 0.1s; }
+    .btn { background-color: #8c7a6b; color: white; border: none; padding: 14px 20px; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s, opacity 0.2s, transform 0.1s; }
     .btn-secondary { background-color: #ffffff; color: #8c7a6b; border: 1px solid #8c7a6b; }
-    .btn-link { background: none; border: none; color: #8c7a6b; font-size: 13px; text-decoration: underline; cursor: pointer; padding: 8px; margin-top: 6px; }
+    .btn-link { background: none; border: none; color: #8c7a6b; font-size: 13px; text-decoration: underline; cursor: pointer; padding: 8px; margin-top: 6px; transition: opacity 0.2s; }
+    
+    /* Disabled state styling for buttons */
+    .btn:disabled, .btn-link:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
     input[type="file"] { display: none; }
     
     #status { margin-top: 12px; font-size: 14px; color: #666; word-break: break-word; line-height: 1.4; }
@@ -70,13 +74,13 @@
       <input type="text" id="guestName" placeholder="e.g. Sarah & Mark" onchange="saveGuestName(this.value)" />
     </div>
 
-    <button class="btn" onclick="triggerInput('cameraPhotoInput')">📸 Take Photo</button>
+    <button id="btnPhoto" class="btn" onclick="triggerInput('cameraPhotoInput')">📸 Take Photo</button>
     <input type="file" id="cameraPhotoInput" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
 
-    <button class="btn" onclick="triggerInput('cameraVideoInput')">🎥 Record Video</button>
+    <button id="btnVideo" class="btn" onclick="triggerInput('cameraVideoInput')">🎥 Record Video</button>
     <input type="file" id="cameraVideoInput" accept="video/*" capture="environment" onchange="handleFileSelect(event)">
 
-    <button class="btn btn-secondary" onclick="triggerInput('galleryInput')">🖼️ Upload from Phone</button>
+    <button id="btnUpload" class="btn btn-secondary" onclick="triggerInput('galleryInput')">🖼️ Upload from Phone</button>
     <input type="file" id="galleryInput" accept="image/*,video/*" multiple onchange="handleFileSelect(event)">
 
     <img id="imagePreview" class="preview" />
@@ -96,8 +100,8 @@
   <!-- Collective Album Section -->
   <div class="card">
     <div class="section-title">
-      <span>Collective Album</span>
-      <button class="btn-link" onclick="fetchGalleryData()">🔄 Refresh</button>
+      <span>Memories So Far</span>
+      <button id="btnRefresh" class="btn-link" onclick="fetchGalleryData()">🔄 Refresh</button>
     </div>
 
     <div id="galleryGrid" class="gallery-grid">
@@ -120,6 +124,14 @@
       fetchGalleryData();
     };
 
+    function setActionButtonsDisabled(disabled) {
+      document.getElementById("btnPhoto").disabled = disabled;
+      document.getElementById("btnVideo").disabled = disabled;
+      document.getElementById("btnUpload").disabled = disabled;
+      document.getElementById("btnRefresh").disabled = disabled;
+      document.getElementById("guestName").disabled = disabled;
+    }
+
     function fetchGalleryData() {
       fetch(API_URL)
         .then(res => res.json())
@@ -134,33 +146,33 @@
         });
     }
 
-function renderGallery(items) {
-  const grid = document.getElementById("galleryGrid");
-  grid.innerHTML = "";
+    function renderGallery(items) {
+      const grid = document.getElementById("galleryGrid");
+      grid.innerHTML = "";
 
-  if (!items || items.length === 0) {
-    grid.innerHTML = "<p style='grid-column: span 3; font-size: 13px; color: #888;'>No photos yet. Be the first!</p>";
-    return;
-  }
+      if (!items || items.length === 0) {
+        grid.innerHTML = "<p style='grid-column: span 3; font-size: 13px; color: #888;'>No photos yet. Be the first!</p>";
+        return;
+      }
 
-  // Reverse the array copy so the newest uploads display first
-  const newestFirst = [...items].reverse();
+      // Reverse array so most recent uploads render first
+      const newestFirst = [...items].reverse();
 
-  newestFirst.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "gallery-item";
-    
-    if (item.mimeType.startsWith("video/")) {
-      div.innerHTML = `<span class="video-badge">🎥 Video</span><img src="${item.thumbnailUrl}" loading="lazy" onerror="this.src='https://via.placeholder.com/150?text=Video'" />`;
-      div.onclick = () => window.open(item.viewUrl, "_blank");
-    } else {
-      div.innerHTML = `<img src="${item.thumbnailUrl}" loading="lazy" />`;
-      div.onclick = () => openLightbox(item.fullUrl);
+      newestFirst.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "gallery-item";
+        
+        if (item.mimeType.startsWith("video/")) {
+          div.innerHTML = `<span class="video-badge">🎥 Video</span><img src="${item.thumbnailUrl}" loading="lazy" onerror="this.src='https://via.placeholder.com/150?text=Video'" />`;
+          div.onclick = () => window.open(item.viewUrl, "_blank");
+        } else {
+          div.innerHTML = `<img src="${item.thumbnailUrl}" loading="lazy" />`;
+          div.onclick = () => openLightbox(item.fullUrl);
+        }
+        
+        grid.appendChild(div);
+      });
     }
-    
-    grid.appendChild(div);
-  });
-}
 
     function openLightbox(url) {
       const modal = document.getElementById("lightbox");
@@ -187,11 +199,13 @@ function renderGallery(items) {
       document.getElementById(inputId).click();
     }
 
-    // Handles single or multiple file uploads directly to Google Drive via Resumable Sessions
     async function handleFileSelect(event) {
       const files = Array.from(event.target.files);
       const guestName = document.getElementById("guestName").value.trim();
       if (!files || files.length === 0) return;
+
+      // Blank out/disable all action buttons during upload
+      setActionButtonsDisabled(true);
 
       const status = document.getElementById("status");
       const progressContainer = document.getElementById("progressContainer");
@@ -203,7 +217,6 @@ function renderGallery(items) {
       progressContainer.style.display = "block";
       progressBar.style.width = "0%";
 
-      // Show preview if a single image is selected
       if (files.length === 1 && files[0].type.startsWith("image/")) {
         preview.src = URL.createObjectURL(files[0]);
         preview.style.display = "block";
@@ -218,7 +231,6 @@ function renderGallery(items) {
         status.innerText = `Preparing ${i + 1} of ${files.length}...`;
 
         try {
-          // Step 1: Request resumable upload session URL from Apps Script
           const sessionPayload = {
             action: "createResumableUpload",
             fileName: file.name,
@@ -238,7 +250,6 @@ function renderGallery(items) {
             throw new Error(sessionData.error || "Could not start upload session");
           }
 
-          // Step 2: Directly upload file to Google Drive in 5MB chunks
           status.innerText = `Uploading ${i + 1} of ${files.length}: ${file.name}`;
           await uploadFileChunks(file, sessionData.uploadUrl, progressBar);
 
@@ -257,120 +268,114 @@ function renderGallery(items) {
         document.getElementById("thankYouMessage").innerText = `Your memory is now part of Zi Yan & Lawrence's wedding album. Feel free to add more throughout the night!`;
         thankYouBox.style.display = "block";
         event.target.value = "";
-        fetchGalleryData(); // Refresh album grid and count
+        fetchGalleryData();
       } else {
         status.innerText = "Upload failed. Please check your connection and try again.";
       }
+
+      // Re-enable all action buttons after upload completes or fails
+      setActionButtonsDisabled(false);
     }
 
-// Direct chunked PUT upload to Google Drive Resumable Upload URI
-// Direct chunked PUT upload to Google Drive Resumable Upload URI with robust status checking
-function uploadFileChunks(file, uploadUrl, progressBar) {
-  return new Promise((resolve, reject) => {
-    const chunkSize = 5 * 1024 * 1024; // 5MB chunks
-    let start = 0;
+    function uploadFileChunks(file, uploadUrl, progressBar) {
+      return new Promise((resolve, reject) => {
+        const chunkSize = 5 * 1024 * 1024;
+        let start = 0;
 
-    function uploadNextChunk() {
-      const end = Math.min(start + chunkSize, file.size);
-      const chunk = file.slice(start, end);
+        function uploadNextChunk() {
+          const end = Math.min(start + chunkSize, file.size);
+          const chunk = file.slice(start, end);
 
-      const xhr = new XMLHttpRequest();
-      xhr.open("PUT", uploadUrl, true);
-      xhr.setRequestHeader("Content-Range", `bytes ${start}-${end - 1}/${file.size}`);
+          const xhr = new XMLHttpRequest();
+          xhr.open("PUT", uploadUrl, true);
+          xhr.setRequestHeader("Content-Range", `bytes ${start}-${end - 1}/${file.size}`);
 
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          const totalUploaded = start + e.loaded;
-          const percent = Math.round((totalUploaded / file.size) * 100);
-          progressBar.style.width = percent + "%";
-        }
-      };
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              const totalUploaded = start + e.loaded;
+              const percent = Math.round((totalUploaded / file.size) * 100);
+              progressBar.style.width = percent + "%";
+            }
+          };
 
-      xhr.onload = () => {
-        // Status 200/201: Complete | Status 308: Chunk accepted, send next
-        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 0) {
-          progressBar.style.width = "100%";
-          resolve();
-        } else if (xhr.status === 308) {
-          start = end;
-          if (start < file.size) {
-            uploadNextChunk();
-          } else {
-            progressBar.style.width = "100%";
-            resolve();
-          }
-        } else {
-          // Verify with Google Drive status check before throwing error
-          checkUploadStatus();
-        }
-      };
-
-      xhr.onerror = () => {
-        // CORS block on long videos / final chunks: query Google Drive to see if file fully uploaded
-        checkUploadStatus();
-      };
-
-      xhr.send(chunk);
-    }
-
-    // Queries Google Drive for the actual number of received bytes to confirm completion
-    function checkUploadStatus() {
-      const statusXhr = new XMLHttpRequest();
-      statusXhr.open("PUT", uploadUrl, true);
-      statusXhr.setRequestHeader("Content-Range", `bytes */${file.size}`);
-
-      statusXhr.onload = () => {
-        if (statusXhr.status === 200 || statusXhr.status === 201) {
-          progressBar.style.width = "100%";
-          resolve();
-        } else if (statusXhr.status === 308) {
-          const range = statusXhr.getResponseHeader("Range");
-          if (range) {
-            const bytesReceived = parseInt(range.split("-")[1], 10) + 1;
-            if (bytesReceived >= file.size) {
+          xhr.onload = () => {
+            if (xhr.status === 200 || xhr.status === 201 || xhr.status === 0) {
               progressBar.style.width = "100%";
               resolve();
-              return;
+            } else if (xhr.status === 308) {
+              start = end;
+              if (start < file.size) {
+                uploadNextChunk();
+              } else {
+                progressBar.style.width = "100%";
+                resolve();
+              }
             } else {
-              start = bytesReceived;
-              uploadNextChunk();
-              return;
+              checkUploadStatus();
             }
-          }
-          // If no range header returned on 308 and we sent all bytes, assume complete
-          if (start >= file.size || (start + chunkSize) >= file.size) {
-            progressBar.style.width = "100%";
-            resolve();
-          } else {
-            uploadNextChunk();
-          }
-        } else {
-          // Final fallback: if all bytes were transmitted, treat as success
-          if (start + chunkSize >= file.size) {
-            progressBar.style.width = "100%";
-            resolve();
-          } else {
-            reject(new Error("Upload failed."));
-          }
-        }
-      };
+          };
 
-      statusXhr.onerror = () => {
-        // If status query also blocked by browser CORS after full byte transmission, mark as success
-        if (start + chunkSize >= file.size) {
-          progressBar.style.width = "100%";
-          resolve();
-        } else {
-          reject(new Error("Network connection lost during upload."));
-        }
-      };
+          xhr.onerror = () => {
+            checkUploadStatus();
+          };
 
-      statusXhr.send();
+          xhr.send(chunk);
+        }
+
+        function checkUploadStatus() {
+          const statusXhr = new XMLHttpRequest();
+          statusXhr.open("PUT", uploadUrl, true);
+          statusXhr.setRequestHeader("Content-Range", `bytes */${file.size}`);
+
+          statusXhr.onload = () => {
+            if (statusXhr.status === 200 || statusXhr.status === 201) {
+              progressBar.style.width = "100%";
+              resolve();
+            } else if (statusXhr.status === 308) {
+              const range = statusXhr.getResponseHeader("Range");
+              if (range) {
+                const bytesReceived = parseInt(range.split("-")[1], 10) + 1;
+                if (bytesReceived >= file.size) {
+                  progressBar.style.width = "100%";
+                  resolve();
+                  return;
+                } else {
+                  start = bytesReceived;
+                  uploadNextChunk();
+                  return;
+                }
+              }
+              if (start >= file.size || (start + chunkSize) >= file.size) {
+                progressBar.style.width = "100%";
+                resolve();
+              } else {
+                uploadNextChunk();
+              }
+            } else {
+              if (start + chunkSize >= file.size) {
+                progressBar.style.width = "100%";
+                resolve();
+              } else {
+                reject(new Error("Upload failed."));
+              }
+            }
+          };
+
+          statusXhr.onerror = () => {
+            if (start + chunkSize >= file.size) {
+              progressBar.style.width = "100%";
+              resolve();
+            } else {
+              reject(new Error("Network connection lost during upload."));
+            }
+          };
+
+          statusXhr.send();
+        }
+
+        uploadNextChunk();
+      });
     }
-
-    uploadNextChunk();
-  });
-}
   </script>
 </body>
 </html>

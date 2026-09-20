@@ -15,13 +15,15 @@
     .counter-badge { background-color: #f7f2eb; border: 1px solid #eae2d6; border-radius: 20px; padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #6f6053; margin-bottom: 20px; font-weight: 500; }
     .counter-badge span { font-weight: 700; color: #4a3e3d; font-size: 15px; }
 
-    .input-group { margin-bottom: 16px; text-align: left; }
+    .input-group { margin-bottom: 14px; text-align: left; }
     .input-group label { display: block; font-size: 12px; color: #6f6053; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .input-group input { width: 100%; padding: 14px 16px; border: 1px solid #d9d0c5; border-radius: 12px; font-size: 16px; background-color: #fdfbf7; color: #333; outline: none; }
+    .input-group input, .input-group textarea { width: 100%; padding: 12px 14px; border: 1px solid #d9d0c5; border-radius: 12px; font-size: 15px; background-color: #fdfbf7; color: #333; outline: none; }
+    .input-group textarea { resize: none; height: 60px; }
     
-    .btn { background-color: #8c7a6b; color: white; border: none; padding: 14px 20px; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s, opacity 0.2s, transform 0.1s; }
+    .btn { background-color: #8c7a6b; color: white; border: none; padding: 14px 20px; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s, opacity 0.2s; }
     .btn-secondary { background-color: #ffffff; color: #8c7a6b; border: 1px solid #8c7a6b; }
-    .btn-link { background: none; border: none; color: #8c7a6b; font-size: 13px; text-decoration: underline; cursor: pointer; padding: 8px; margin-top: 6px; transition: opacity 0.2s; }
+    .btn-share { background-color: #f7f2eb; color: #4a3e3d; border: 1px solid #d9d0c5; margin-bottom: 18px; }
+    .btn-link { background: none; border: none; color: #8c7a6b; font-size: 13px; text-decoration: underline; cursor: pointer; padding: 8px; transition: opacity 0.2s; }
     
     /* Pagination Button Styling */
     .btn-nav { background-color: #f7f2eb; border: 1px solid #d9d0c5; color: #4a3e3d; border-radius: 20px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s, opacity 0.2s; }
@@ -35,6 +37,9 @@
     
     #status { margin-top: 12px; font-size: 14px; color: #666; word-break: break-word; line-height: 1.4; }
     
+    /* Offline Queue Alert Banner */
+    .offline-banner { display: none; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; font-size: 12px; padding: 8px 12px; border-radius: 10px; margin-bottom: 14px; font-weight: 500; }
+
     /* Progress Bar */
     .progress-container { display: none; width: 100%; background-color: #f3f3f3; border-radius: 10px; margin-top: 15px; overflow: hidden; height: 12px; }
     .progress-bar { width: 0%; height: 100%; background-color: #8c7a6b; transition: width 0.2s; }
@@ -55,15 +60,21 @@
     .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; min-height: 100px; }
     .gallery-item { position: relative; width: 100%; padding-top: 100%; border-radius: 10px; overflow: hidden; background-color: #eae2d6; cursor: pointer; }
     .gallery-item img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
-    .video-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; }
+    .video-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; z-index: 2; }
+    
+    /* Like / Heart Button Overlay */
+    .like-btn { position: absolute; bottom: 6px; right: 6px; background: rgba(255,255,255,0.85); border: none; border-radius: 12px; padding: 3px 8px; font-size: 11px; font-weight: bold; color: #4a3e3d; cursor: pointer; display: flex; align-items: center; gap: 3px; z-index: 2; backdrop-filter: blur(2px); box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+    .like-btn.liked { color: #e74c3c; background: #ffffff; }
 
     /* Pagination Bar */
-    .pagination-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 16px; padding-top: 12px; border-top: 1px border #eae2d6; }
+    .pagination-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 16px; padding-top: 12px; border-top: 1px solid #eae2d6; }
     .page-info { font-size: 13px; color: #6f6053; font-weight: 500; }
 
-    /* Lightbox Modal */
+    /* Lightbox & QR Modal */
     .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
-    .modal img { max-width: 100%; max-height: 80vh; border-radius: 12px; }
+    .modal img { max-width: 90%; max-height: 70vh; border-radius: 12px; }
+    .modal-card { background: white; padding: 24px; border-radius: 20px; max-width: 320px; text-align: center; }
+    .modal-card img { width: 200px; height: 200px; margin: 12px 0; }
     .modal-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 28px; cursor: pointer; background: none; border: none; }
   </style>
 </head>
@@ -78,9 +89,20 @@
       📸 <span id="photoCount">...</span> memories shared so far!
     </div>
 
+    <button id="btnShareQR" class="btn btn-share" onclick="openQRModal()">📲 Share App via QR Code</button>
+
+    <div id="offlineBanner" class="offline-banner">
+      📡 Offline mode active. Uploads will auto-sync when online.
+    </div>
+
     <div class="input-group">
       <label for="guestName">Your Name</label>
       <input type="text" id="guestName" placeholder="e.g. Sarah & Mark" onchange="saveGuestName(this.value)" />
+    </div>
+
+    <div class="input-group">
+      <label for="guestWishes">Wishes / Note for the Couple (Optional)</label>
+      <textarea id="guestWishes" placeholder="Best wishes Zi Yan & Lawrence! ❤️"></textarea>
     </div>
 
     <button id="btnPhoto" class="btn" onclick="triggerInput('cameraPhotoInput')">📸 Take Photo</button>
@@ -131,6 +153,17 @@
     <div id="modalContent"></div>
   </div>
 
+  <!-- QR Share Modal -->
+  <div id="qrModal" class="modal" onclick="closeQRModal()">
+    <button class="modal-close">&times;</button>
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <h3 style="font-family: Georgia, serif; color: #4a3e3d;">Scan to Open App</h3>
+      <p style="font-size: 12px; color: #6f6053; margin-top: 4px;">Point camera to upload photos</p>
+      <img id="qrCodeImg" src="" alt="QR Code" />
+      <button class="btn btn-secondary" onclick="closeQRModal()" style="margin-bottom: 0;">Close</button>
+    </div>
+  </div>
+
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbwN9iDPbM_5qg5zb2wArE1nlaE_PhqHScIH25m3-bE2e97QZCTNrQ9Cj3Hc667_SFxW/exec";
 
@@ -139,11 +172,37 @@
     let currentPage = 1;
     let allGalleryItems = [];
 
+    // Offline IndexedDB Storage Setup
+    let db;
+    const dbRequest = indexedDB.open("WeddingAppDB", 1);
+    dbRequest.onupgradeneeded = (e) => {
+      db = e.target.result;
+      if (!db.objectStoreNames.contains("uploadQueue")) {
+        db.createObjectStore("uploadQueue", { keyPath: "id", autoIncrement: true });
+      }
+    };
+    dbRequest.onsuccess = (e) => { db = e.target.result; syncOfflineQueue(); };
+
     window.onload = function() {
       const savedName = localStorage.getItem("wedding_guest_name");
       if (savedName) document.getElementById("guestName").value = savedName;
+      
+      window.addEventListener('online', updateNetworkStatus);
+      window.addEventListener('offline', updateNetworkStatus);
+      updateNetworkStatus();
+
       fetchGalleryData();
     };
+
+    function updateNetworkStatus() {
+      const banner = document.getElementById("offlineBanner");
+      if (navigator.onLine) {
+        banner.style.display = "none";
+        syncOfflineQueue();
+      } else {
+        banner.style.display = "block";
+      }
+    }
 
     function setActionButtonsDisabled(disabled) {
       document.getElementById("btnPhoto").disabled = disabled;
@@ -151,6 +210,7 @@
       document.getElementById("btnUpload").disabled = disabled;
       document.getElementById("btnRefresh").disabled = disabled;
       document.getElementById("guestName").disabled = disabled;
+      document.getElementById("guestWishes").disabled = disabled;
     }
 
     function fetchGalleryData() {
@@ -159,9 +219,8 @@
         .then(data => {
           if (data.success) {
             document.getElementById("photoCount").innerText = data.count;
-            // Store reversed copy so newest items are first
             allGalleryItems = (data.items || []).slice().reverse();
-            currentPage = 1; // Reset to first page on refresh
+            currentPage = 1;
             renderGalleryPage();
           }
         })
@@ -193,18 +252,37 @@
         const div = document.createElement("div");
         div.className = "gallery-item";
         
+        const likesKey = "likes_" + item.id;
+        const hasLikedKey = "has_liked_" + item.id;
+        let likeCount = parseInt(localStorage.getItem(likesKey) || "0", 10);
+        let userLiked = localStorage.getItem(hasLikedKey) === "true";
+
+        let mediaHtml = "";
         if (item.mimeType.startsWith("video/")) {
-          div.innerHTML = `<span class="video-badge">🎥 Video</span><img src="${item.thumbnailUrl}" loading="lazy" onerror="this.src='https://via.placeholder.com/150?text=Video'" />`;
-          div.onclick = () => window.open(item.viewUrl, "_blank");
+          mediaHtml = `<span class="video-badge">🎥 Video</span><img src="${item.thumbnailUrl}" loading="lazy" onerror="this.src='https://via.placeholder.com/150?text=Video'" />`;
         } else {
-          div.innerHTML = `<img src="${item.thumbnailUrl}" loading="lazy" />`;
-          div.onclick = () => openLightbox(item.fullUrl);
+          mediaHtml = `<img src="${item.thumbnailUrl}" loading="lazy" />`;
         }
-        
+
+        const likeBtnHtml = `
+          <button class="like-btn ${userLiked ? 'liked' : ''}" onclick="toggleLike(event, '${item.id}')">
+            ❤️ <span id="like-count-${item.id}">${likeCount}</span>
+          </button>
+        `;
+
+        div.innerHTML = mediaHtml + likeBtnHtml;
+        div.onclick = (e) => {
+          if (e.target.closest('.like-btn')) return;
+          if (item.mimeType.startsWith("video/")) {
+            window.open(item.viewUrl, "_blank");
+          } else {
+            openLightbox(item.fullUrl);
+          }
+        };
+
         grid.appendChild(div);
       });
 
-      // Update Pagination Controls
       if (totalPages > 1) {
         paginationBar.style.display = "flex";
         document.getElementById("pageInfo").innerText = `Page ${currentPage} of ${totalPages}`;
@@ -215,10 +293,28 @@
       }
     }
 
+    function toggleLike(e, itemId) {
+      e.stopPropagation();
+      const likesKey = "likes_" + itemId;
+      const hasLikedKey = "has_liked_" + itemId;
+      let count = parseInt(localStorage.getItem(likesKey) || "0", 10);
+      let userLiked = localStorage.getItem(hasLikedKey) === "true";
+
+      if (userLiked) {
+        count = Math.max(0, count - 1);
+        localStorage.setItem(hasLikedKey, "false");
+      } else {
+        count += 1;
+        localStorage.setItem(hasLikedKey, "true");
+      }
+
+      localStorage.setItem(likesKey, count.toString());
+      renderGalleryPage();
+    }
+
     function changePage(direction) {
       currentPage += direction;
       renderGalleryPage();
-      // Scroll smoothly to gallery top when changing pages
       document.getElementById("galleryGrid").scrollIntoView({ behavior: "smooth" });
     }
 
@@ -231,6 +327,17 @@
 
     function closeLightbox() {
       document.getElementById("lightbox").style.display = "none";
+    }
+
+    function openQRModal() {
+      const currentUrl = encodeURIComponent(window.location.href);
+      const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${currentUrl}`;
+      document.getElementById("qrCodeImg").src = qrApi;
+      document.getElementById("qrModal").style.display = "flex";
+    }
+
+    function closeQRModal() {
+      document.getElementById("qrModal").style.display = "none";
     }
 
     function saveGuestName(val) {
@@ -250,6 +357,7 @@
     async function handleFileSelect(event) {
       const files = Array.from(event.target.files);
       const guestName = document.getElementById("guestName").value.trim();
+      const guestWishes = document.getElementById("guestWishes").value.trim();
       if (!files || files.length === 0) return;
 
       setActionButtonsDisabled(true);
@@ -271,16 +379,35 @@
         preview.style.display = "none";
       }
 
+      // Offline Handling
+      if (!navigator.onLine) {
+        for (const file of files) {
+          saveToOfflineQueue(file, guestName, guestWishes);
+        }
+        status.innerText = "Saved offline! Upload will complete automatically when connection returns.";
+        progressContainer.style.display = "none";
+        preview.style.display = "none";
+        setActionButtonsDisabled(false);
+        return;
+      }
+
       let successCount = 0;
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         status.innerText = `Preparing ${i + 1} of ${files.length}...`;
 
+        // Format name to append optional wishes note
+        let formattedName = file.name;
+        if (guestWishes) {
+          const cleanWishes = guestWishes.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 30);
+          formattedName = `${cleanWishes}_${file.name}`;
+        }
+
         try {
           const sessionPayload = {
             action: "createResumableUpload",
-            fileName: file.name,
+            fileName: formattedName,
             mimeType: file.type || "application/octet-stream",
             guestName: guestName
           };
@@ -302,7 +429,8 @@
 
           successCount++;
         } catch (err) {
-          console.error("Failed to upload file:", file.name, err);
+          console.error("Failed to upload file, saving to offline retry queue:", file.name, err);
+          saveToOfflineQueue(file, guestName, guestWishes);
         }
       }
 
@@ -314,13 +442,74 @@
         document.getElementById("thankYouTitle").innerText = "Thank You, " + guestName + "!";
         document.getElementById("thankYouMessage").innerText = `Your memory is now part of Zi Yan & Lawrence's wedding album. Feel free to add more throughout the night!`;
         thankYouBox.style.display = "block";
+        document.getElementById("guestWishes").value = "";
         event.target.value = "";
         fetchGalleryData();
       } else {
-        status.innerText = "Upload failed. Please check your connection and try again.";
+        status.innerText = "Upload queued. Will retry when connection stabilizes.";
       }
 
       setActionButtonsDisabled(false);
+    }
+
+    function saveToOfflineQueue(file, guestName, wishes) {
+      if (!db) return;
+      const tx = db.transaction("uploadQueue", "readwrite");
+      const store = tx.objectStore("uploadQueue");
+      store.add({
+        file: file,
+        guestName: guestName,
+        wishes: wishes,
+        timestamp: Date.now()
+      });
+    }
+
+    function syncOfflineQueue() {
+      if (!db || !navigator.onLine) return;
+      const tx = db.transaction("uploadQueue", "readwrite");
+      const store = tx.objectStore("uploadQueue");
+      const getAllReq = store.getAll();
+
+      getAllReq.onsuccess = async () => {
+        const items = getAllReq.result;
+        if (!items || items.length === 0) return;
+
+        for (const item of items) {
+          try {
+            let formattedName = item.file.name;
+            if (item.wishes) {
+              const cleanWishes = item.wishes.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 30);
+              formattedName = `${cleanWishes}_${item.file.name}`;
+            }
+
+            const sessionPayload = {
+              action: "createResumableUpload",
+              fileName: formattedName,
+              mimeType: item.file.type || "application/octet-stream",
+              guestName: item.guestName
+            };
+
+            const sessionRes = await fetch(API_URL, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify(sessionPayload)
+            });
+
+            const sessionData = await sessionRes.json();
+            if (sessionData.success && sessionData.uploadUrl) {
+              const dummyBar = document.createElement("div");
+              await uploadFileChunks(item.file, sessionData.uploadUrl, dummyBar);
+
+              // Remove from IndexedDB on success
+              const delTx = db.transaction("uploadQueue", "readwrite");
+              delTx.objectStore("uploadQueue").delete(item.id);
+            }
+          } catch (e) {
+            console.error("Offline item sync retry failed:", e);
+          }
+        }
+        fetchGalleryData();
+      };
     }
 
     function uploadFileChunks(file, uploadUrl, progressBar) {
@@ -337,7 +526,7 @@
           xhr.setRequestHeader("Content-Range", `bytes ${start}-${end - 1}/${file.size}`);
 
           xhr.upload.onprogress = (e) => {
-            if (e.lengthComputable) {
+            if (e.lengthComputable && progressBar.style) {
               const totalUploaded = start + e.loaded;
               const percent = Math.round((totalUploaded / file.size) * 100);
               progressBar.style.width = percent + "%";
@@ -346,14 +535,14 @@
 
           xhr.onload = () => {
             if (xhr.status === 200 || xhr.status === 201 || xhr.status === 0) {
-              progressBar.style.width = "100%";
+              if (progressBar.style) progressBar.style.width = "100%";
               resolve();
             } else if (xhr.status === 308) {
               start = end;
               if (start < file.size) {
                 uploadNextChunk();
               } else {
-                progressBar.style.width = "100%";
+                if (progressBar.style) progressBar.style.width = "100%";
                 resolve();
               }
             } else {
@@ -375,14 +564,14 @@
 
           statusXhr.onload = () => {
             if (statusXhr.status === 200 || statusXhr.status === 201) {
-              progressBar.style.width = "100%";
+              if (progressBar.style) progressBar.style.width = "100%";
               resolve();
             } else if (statusXhr.status === 308) {
               const range = statusXhr.getResponseHeader("Range");
               if (range) {
                 const bytesReceived = parseInt(range.split("-")[1], 10) + 1;
                 if (bytesReceived >= file.size) {
-                  progressBar.style.width = "100%";
+                  if (progressBar.style) progressBar.style.width = "100%";
                   resolve();
                   return;
                 } else {
@@ -392,14 +581,14 @@
                 }
               }
               if (start >= file.size || (start + chunkSize) >= file.size) {
-                progressBar.style.width = "100%";
+                if (progressBar.style) progressBar.style.width = "100%";
                 resolve();
               } else {
                 uploadNextChunk();
               }
             } else {
               if (start + chunkSize >= file.size) {
-                progressBar.style.width = "100%";
+                if (progressBar.style) progressBar.style.width = "100%";
                 resolve();
               } else {
                 reject(new Error("Upload failed."));
@@ -409,7 +598,7 @@
 
           statusXhr.onerror = () => {
             if (start + chunkSize >= file.size) {
-              progressBar.style.width = "100%";
+              if (progressBar.style) progressBar.style.width = "100%";
               resolve();
             } else {
               reject(new Error("Network connection lost during upload."));

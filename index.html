@@ -60,10 +60,6 @@
     .gallery-item { position: relative; width: 100%; padding-top: 100%; border-radius: 10px; overflow: hidden; background-color: #eae2d6; cursor: pointer; }
     .gallery-item img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
     .video-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; z-index: 2; }
-    
-    /* Like / Heart Button Overlay */
-    .like-btn { position: absolute; bottom: 6px; right: 6px; background: rgba(255,255,255,0.85); border: none; border-radius: 12px; padding: 3px 8px; font-size: 11px; font-weight: bold; color: #4a3e3d; cursor: pointer; display: flex; align-items: center; gap: 3px; z-index: 2; backdrop-filter: blur(2px); box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
-    .like-btn.liked { color: #e74c3c; background: #ffffff; }
 
     /* Pagination Bar */
     .pagination-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 16px; padding-top: 12px; border-top: 1px solid #eae2d6; }
@@ -125,7 +121,7 @@
   <!-- Collective Album Section -->
   <div class="card">
     <div class="section-title">
-      <span>Memories So Far</span>
+      <span>Collective Album</span>
       <button id="btnRefresh" class="btn-link" onclick="fetchGalleryData()">🔄 Refresh</button>
     </div>
 
@@ -244,11 +240,6 @@
       pageItems.forEach(item => {
         const div = document.createElement("div");
         div.className = "gallery-item";
-        
-        const likesKey = "likes_" + item.id;
-        const hasLikedKey = "has_liked_" + item.id;
-        let likeCount = parseInt(localStorage.getItem(likesKey) || "0", 10);
-        let userLiked = localStorage.getItem(hasLikedKey) === "true";
 
         let mediaHtml = "";
         if (item.mimeType.startsWith("video/")) {
@@ -257,15 +248,8 @@
           mediaHtml = `<img src="${item.thumbnailUrl}" loading="lazy" />`;
         }
 
-        const likeBtnHtml = `
-          <button class="like-btn ${userLiked ? 'liked' : ''}" onclick="toggleLike(event, '${item.id}')">
-            ❤️ <span id="like-count-${item.id}">${likeCount}</span>
-          </button>
-        `;
-
-        div.innerHTML = mediaHtml + likeBtnHtml;
-        div.onclick = (e) => {
-          if (e.target.closest('.like-btn')) return;
+        div.innerHTML = mediaHtml;
+        div.onclick = () => {
           if (item.mimeType.startsWith("video/")) {
             window.open(item.viewUrl, "_blank");
           } else {
@@ -284,25 +268,6 @@
       } else {
         paginationBar.style.display = "none";
       }
-    }
-
-    function toggleLike(e, itemId) {
-      e.stopPropagation();
-      const likesKey = "likes_" + itemId;
-      const hasLikedKey = "has_liked_" + itemId;
-      let count = parseInt(localStorage.getItem(likesKey) || "0", 10);
-      let userLiked = localStorage.getItem(hasLikedKey) === "true";
-
-      if (userLiked) {
-        count = Math.max(0, count - 1);
-        localStorage.setItem(hasLikedKey, "false");
-      } else {
-        count += 1;
-        localStorage.setItem(hasLikedKey, "true");
-      }
-
-      localStorage.setItem(likesKey, count.toString());
-      renderGalleryPage();
     }
 
     function changePage(direction) {

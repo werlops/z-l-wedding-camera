@@ -134,7 +134,7 @@
   <div class="card">
     <div class="section-title">
       <span>Collective Album</span>
-      <button id="btnRefresh" class="btn-link" onclick="fetchGalleryData()">🔄 Refresh</button>
+      <button id="btnRefresh" class="btn-link" onclick="fetchGalleryData(true)">🔄 Refresh</button>
     </div>
 
     <div class="sort-bar">
@@ -242,6 +242,11 @@
     // Slideshow state
     let slideshowTimer = null;
     let slideshowIndex = 0;
+    let wakeLock = null;
+
+    // Refresh Optimization state
+    let lastFetchTimestamp = 0;
+    const REFRESH_THROTTLE_MS = 120000; // 2 minutes limit
 
     let db;
     const dbRequest = indexedDB.open("WeddingAppDB", 1);
@@ -261,7 +266,12 @@
       window.addEventListener('offline', updateNetworkStatus);
       updateNetworkStatus();
 
-      fetchGalleryData();
+      // Initial Fetch
+      fetchGalleryData(true);
+
+      // Refresh Optimization Listener (Visibility Change & Window Focus)
+      document.addEventListener("visibilitychange", handleVisibilityOrFocus);
+      window.addEventListener("focus", handleVisibilityOrFocus);
     };
 
     function updateNetworkStatus() {
@@ -274,6 +284,41 @@
       }
     }
 
+    /* Screen Wake Lock API Helpers */
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (err) {
+        console.warn("Screen Wake Lock failed:", err.name, err.message);
+      }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock !== null) {
+        wakeLock.release()
+          .then(() => { wakeLock = null; })
+          .catch(err => console.warn("Wake Lock release error:", err));
+      }
+    }
+
+    /* Refresh Optimization & Smart Throttle Handler */
+    function handleVisibilityOrFocus() {
+      // Re-acquire Wake Lock if returning to tab while slideshow active
+      if (document.visibilityState === 'visible' && document.getElementById("slideshowModal").style.display === "flex") {
+        requestWakeLock();
+      }
+
+      // Check throttle duration before triggering API call
+      if (document.visibilityState === 'visible') {
+        const timeElapsed = Date.now() - lastFetchTimestamp;
+        if (timeElapsed > REFRESH_THROTTLE_MS) {
+          fetchGalleryData(false);
+        }
+      }
+    }
+
     function setActionButtonsDisabled(disabled) {
       document.getElementById("btnPhoto").disabled = disabled;
       document.getElementById("btnVideo").disabled = disabled;
@@ -282,11 +327,17 @@
       document.getElementById("guestName").disabled = disabled;
     }
 
-    function fetchGalleryData() {
+    function fetchGalleryData(force = false) {
+      const timeElapsed = Date.now() - lastFetchTimestamp;
+      if (!force && timeElapsed < REFRESH_THROTTLE_MS) {
+        return;
+      }
+
       fetch(API_URL)
         .then(res => res.json())
         .then(data => {
           if (data.success) {
+            lastFetchTimestamp = Date.now();
             document.getElementById("photoCount").innerText = data.count;
             allGalleryItems = (data.items || []).slice().reverse();
             applySortAndRender();
@@ -314,11 +365,9 @@
       const isCurrentlyReacted = !!reactedMap[fileId];
       const newReactedState = !isCurrentlyReacted;
 
-      // Update local storage tracking immediately (1 react per guest rule)
       reactedMap[fileId] = newReactedState;
       setReactedMap(reactedMap);
 
-      // Update in-memory item
       const item = allGalleryItems.find(i => (i.fileId || i.id) === fileId);
       if (item) {
         item.likes = Math.max(0, (item.likes || 0) + (newReactedState ? 1 : -1));
@@ -326,7 +375,6 @@
 
       applySortAndRender();
 
-      // Sync with Apps Script backend
       try {
         await fetch(API_URL, {
           method: "POST",
@@ -384,7 +432,6 @@
           mediaHtml = `<img src="${item.thumbnailUrl}" loading="lazy" />`;
         }
 
-        // Like/Heart overlay button
         mediaHtml += `<button class="like-btn ${isReacted ? 'reacted' : ''}" onclick="toggleLike(event, '${fId}')">${isReacted ? '❤️' : '♡'} ${item.likes || 0}</button>`;
 
         if (isAdmin) {
@@ -419,17 +466,20 @@
       document.getElementById("galleryGrid").scrollIntoView({ behavior: "smooth" });
     }
 
-    /* Admin Live Slideshow Mode */
-    function startSlideshow() {
+    /* Admin Live Slideshow Mode with Wake Lock */
+    async function startSlideshow() {
       if (!allGalleryItems || allGalleryItems.length === 0) {
         alert("No photos or videos available for slideshow.");
         return;
       }
+      
+      // Activate Screen Wake Lock
+      await requestWakeLock();
+
       slideshowIndex = 0;
       document.getElementById("slideshowModal").style.display = "flex";
       showSlideshowItem();
 
-      // Rotate item every 5 seconds
       if (slideshowTimer) clearInterval(slideshowTimer);
       slideshowTimer = setInterval(() => {
         slideshowIndex = (slideshowIndex + 1) % allGalleryItems.length;
@@ -456,6 +506,9 @@
       if (slideshowTimer) clearInterval(slideshowTimer);
       document.getElementById("slideshowModal").style.display = "none";
       document.getElementById("slideshowContent").innerHTML = "";
+      
+      // Release Screen Wake Lock
+      releaseWakeLock();
     }
 
     /* Admin Access & Passcode */
@@ -680,7 +733,9 @@
         document.getElementById("thankYouMessage").innerText = `Your memory is now part of Zi Yan & Lawrence's wedding album. Feel free to add more throughout the night!`;
         thankYouBox.style.display = "block";
         event.target.value = "";
-        fetchGalleryData();
+        
+        // Force refresh upon successful upload
+        fetchGalleryData(true);
       } else {
         status.innerText = "Upload queued. Will retry when connection stabilizes.";
       }
@@ -736,7 +791,7 @@
             console.error("Offline item sync retry failed:", e);
           }
         }
-        fetchGalleryData();
+        fetchGalleryData(true);
       };
     }
 

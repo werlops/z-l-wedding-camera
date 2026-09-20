@@ -17,12 +17,11 @@
 
     .input-group { margin-bottom: 14px; text-align: left; }
     .input-group label { display: block; font-size: 12px; color: #6f6053; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .input-group input, .input-group select { width: 100%; padding: 12px 14px; border: 1px solid #d9d0c5; border-radius: 12px; font-size: 15px; background-color: #fdfbf7; color: #333; outline: none; }
+    .input-group input { width: 100%; padding: 12px 14px; border: 1px solid #d9d0c5; border-radius: 12px; font-size: 15px; background-color: #fdfbf7; color: #333; outline: none; }
     
     .btn { background-color: #8c7a6b; color: white; border: none; padding: 14px 20px; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s, opacity 0.2s; }
     .btn-secondary { background-color: #ffffff; color: #8c7a6b; border: 1px solid #8c7a6b; }
     .btn-share { background-color: #f7f2eb; color: #4a3e3d; border: 1px solid #d9d0c5; margin-bottom: 18px; }
-    .btn-danger { background-color: #d9534f; color: white; border: none; }
     .btn-link { background: none; border: none; color: #8c7a6b; font-size: 13px; text-decoration: underline; cursor: pointer; padding: 8px; transition: opacity 0.2s; }
     
     .btn-nav { background-color: #f7f2eb; border: 1px solid #d9d0c5; color: #4a3e3d; border-radius: 20px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s, opacity 0.2s; }
@@ -47,19 +46,13 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.15); } }
 
-    /* Gallery & Filters */
+    /* Gallery */
     .section-title { font-family: 'Georgia', serif; font-size: 20px; color: #4a3e3d; margin: 10px 0 14px; display: flex; align-items: center; justify-content: space-between; width: 100%; }
-    
-    .filter-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; width: 100%; scrollbar-width: none; }
-    .filter-bar::-webkit-scrollbar { display: none; }
-    .filter-chip { background-color: #f7f2eb; border: 1px solid #d9d0c5; color: #6f6053; font-size: 12px; padding: 6px 12px; border-radius: 16px; white-space: nowrap; cursor: pointer; transition: all 0.2s; }
-    .filter-chip.active { background-color: #8c7a6b; color: white; border-color: #8c7a6b; }
 
     .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; min-height: 100px; }
     .gallery-item { position: relative; width: 100%; padding-top: 100%; border-radius: 10px; overflow: hidden; background-color: #eae2d6; cursor: pointer; }
     .gallery-item img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
     .video-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; z-index: 2; }
-    .category-tag { position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.65); color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 8px; z-index: 2; font-weight: 500; }
     
     .admin-delete-btn { position: absolute; top: 6px; left: 6px; background: #d9534f; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; z-index: 3; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
@@ -213,8 +206,6 @@
     const ITEMS_PER_PAGE = 18;
     let currentPage = 1;
     let allGalleryItems = [];
-    let filteredGalleryItems = [];
-    let activeFilter = 'All';
     let isAdmin = false;
     let activePasscode = "";
 
@@ -264,7 +255,7 @@
           if (data.success) {
             document.getElementById("photoCount").innerText = data.count;
             allGalleryItems = (data.items || []).slice().reverse();
-            applyFilterAndRender();
+            renderGalleryPage();
           }
         })
         .catch(() => {
@@ -273,40 +264,23 @@
         });
     }
 
-    function filterGallery(category, el) {
-      activeFilter = category;
-      document.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active'));
-      if (el) el.classList.add('active');
-      currentPage = 1;
-      applyFilterAndRender();
-    }
-
-    function applyFilterAndRender() {
-      if (activeFilter === 'All') {
-        filteredGalleryItems = [...allGalleryItems];
-      } else {
-        filteredGalleryItems = allGalleryItems.filter(item => (item.category || 'General') === activeFilter);
-      }
-      renderGalleryPage();
-    }
-
     function renderGalleryPage() {
       const grid = document.getElementById("galleryGrid");
       const paginationBar = document.getElementById("paginationBar");
       grid.innerHTML = "";
 
-      if (!filteredGalleryItems || filteredGalleryItems.length === 0) {
-        grid.innerHTML = "<p style='grid-column: span 3; font-size: 13px; color: #888;'>No photos in this category yet.</p>";
+      if (!allGalleryItems || allGalleryItems.length === 0) {
+        grid.innerHTML = "<p style='grid-column: span 3; font-size: 13px; color: #888;'>No photos in the album yet.</p>";
         paginationBar.style.display = "none";
         return;
       }
 
-      const totalPages = Math.ceil(filteredGalleryItems.length / ITEMS_PER_PAGE);
+      const totalPages = Math.ceil(allGalleryItems.length / ITEMS_PER_PAGE);
       if (currentPage > totalPages) currentPage = totalPages;
       if (currentPage < 1) currentPage = 1;
 
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-      const pageItems = filteredGalleryItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+      const pageItems = allGalleryItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
       pageItems.forEach((item, index) => {
         const div = document.createElement("div");
@@ -318,9 +292,6 @@
         } else {
           mediaHtml = `<img src="${item.thumbnailUrl}" loading="lazy" />`;
         }
-
-        const tagText = item.category ? item.category : "General";
-        mediaHtml += `<span class="category-tag">${tagText}</span>`;
 
         if (isAdmin) {
           mediaHtml += `<button class="admin-delete-btn" onclick="deleteItem(event, '${item.fileId || item.id}', ${startIndex + index})">&times;</button>`;
@@ -454,7 +425,7 @@
       }
 
       allGalleryItems.splice(index, 1);
-      applyFilterAndRender();
+      renderGalleryPage();
     }
 
     function openLightbox(url) {
@@ -496,7 +467,6 @@
     async function handleFileSelect(event) {
       const files = Array.from(event.target.files);
       const guestName = document.getElementById("guestName").value.trim();
-      const category = document.getElementById("uploadCategory").value;
       if (!files || files.length === 0) return;
 
       setActionButtonsDisabled(true);
@@ -522,7 +492,7 @@
 
       if (!navigator.onLine) {
         for (const file of files) {
-          saveToOfflineQueue(file, guestName, category);
+          saveToOfflineQueue(file, guestName);
         }
         uploadModal.style.display = "none";
         status.innerText = "Saved offline! Upload will complete automatically when connection returns.";
@@ -543,8 +513,7 @@
             action: "createResumableUpload",
             fileName: file.name,
             mimeType: file.type || "application/octet-stream",
-            guestName: guestName,
-            category: category
+            guestName: guestName
           };
 
           const sessionRes = await fetch(API_URL, {
@@ -565,7 +534,7 @@
           successCount++;
         } catch (err) {
           console.error("Failed to upload file, saving to offline retry queue:", file.name, err);
-          saveToOfflineQueue(file, guestName, category);
+          saveToOfflineQueue(file, guestName);
         }
       }
 
@@ -586,14 +555,13 @@
       setActionButtonsDisabled(false);
     }
 
-    function saveToOfflineQueue(file, guestName, category) {
+    function saveToOfflineQueue(file, guestName) {
       if (!db) return;
       const tx = db.transaction("uploadQueue", "readwrite");
       const store = tx.objectStore("uploadQueue");
       store.add({
         file: file,
         guestName: guestName,
-        category: category,
         timestamp: Date.now()
       });
     }
@@ -614,8 +582,7 @@
               action: "createResumableUpload",
               fileName: item.file.name,
               mimeType: item.file.type || "application/octet-stream",
-              guestName: item.guestName,
-              category: item.category || "General"
+              guestName: item.guestName
             };
 
             const sessionRes = await fetch(API_URL, {

@@ -17,8 +17,7 @@
 
     .input-group { margin-bottom: 14px; text-align: left; }
     .input-group label { display: block; font-size: 12px; color: #6f6053; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .input-group input, .input-group textarea { width: 100%; padding: 12px 14px; border: 1px solid #d9d0c5; border-radius: 12px; font-size: 15px; background-color: #fdfbf7; color: #333; outline: none; }
-    .input-group textarea { resize: none; height: 60px; }
+    .input-group input { width: 100%; padding: 12px 14px; border: 1px solid #d9d0c5; border-radius: 12px; font-size: 15px; background-color: #fdfbf7; color: #333; outline: none; }
     
     .btn { background-color: #8c7a6b; color: white; border: none; padding: 14px 20px; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s, opacity 0.2s; }
     .btn-secondary { background-color: #ffffff; color: #8c7a6b; border: 1px solid #8c7a6b; }
@@ -100,11 +99,6 @@
       <input type="text" id="guestName" placeholder="e.g. Sarah & Mark" onchange="saveGuestName(this.value)" />
     </div>
 
-    <div class="input-group">
-      <label for="guestWishes">Wishes / Note for the Couple (Optional)</label>
-      <textarea id="guestWishes" placeholder="Best wishes Zi Yan & Lawrence! ❤️"></textarea>
-    </div>
-
     <button id="btnPhoto" class="btn" onclick="triggerInput('cameraPhotoInput')">📸 Take Photo</button>
     <input type="file" id="cameraPhotoInput" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
 
@@ -131,7 +125,7 @@
   <!-- Collective Album Section -->
   <div class="card">
     <div class="section-title">
-      <span>Collective Album</span>
+      <span>Memories So Far</span>
       <button id="btnRefresh" class="btn-link" onclick="fetchGalleryData()">🔄 Refresh</button>
     </div>
 
@@ -210,7 +204,6 @@
       document.getElementById("btnUpload").disabled = disabled;
       document.getElementById("btnRefresh").disabled = disabled;
       document.getElementById("guestName").disabled = disabled;
-      document.getElementById("guestWishes").disabled = disabled;
     }
 
     function fetchGalleryData() {
@@ -357,7 +350,6 @@
     async function handleFileSelect(event) {
       const files = Array.from(event.target.files);
       const guestName = document.getElementById("guestName").value.trim();
-      const guestWishes = document.getElementById("guestWishes").value.trim();
       if (!files || files.length === 0) return;
 
       setActionButtonsDisabled(true);
@@ -382,7 +374,7 @@
       // Offline Handling
       if (!navigator.onLine) {
         for (const file of files) {
-          saveToOfflineQueue(file, guestName, guestWishes);
+          saveToOfflineQueue(file, guestName);
         }
         status.innerText = "Saved offline! Upload will complete automatically when connection returns.";
         progressContainer.style.display = "none";
@@ -397,17 +389,10 @@
         const file = files[i];
         status.innerText = `Preparing ${i + 1} of ${files.length}...`;
 
-        // Format name to append optional wishes note
-        let formattedName = file.name;
-        if (guestWishes) {
-          const cleanWishes = guestWishes.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 30);
-          formattedName = `${cleanWishes}_${file.name}`;
-        }
-
         try {
           const sessionPayload = {
             action: "createResumableUpload",
-            fileName: formattedName,
+            fileName: file.name,
             mimeType: file.type || "application/octet-stream",
             guestName: guestName
           };
@@ -430,7 +415,7 @@
           successCount++;
         } catch (err) {
           console.error("Failed to upload file, saving to offline retry queue:", file.name, err);
-          saveToOfflineQueue(file, guestName, guestWishes);
+          saveToOfflineQueue(file, guestName);
         }
       }
 
@@ -442,7 +427,6 @@
         document.getElementById("thankYouTitle").innerText = "Thank You, " + guestName + "!";
         document.getElementById("thankYouMessage").innerText = `Your memory is now part of Zi Yan & Lawrence's wedding album. Feel free to add more throughout the night!`;
         thankYouBox.style.display = "block";
-        document.getElementById("guestWishes").value = "";
         event.target.value = "";
         fetchGalleryData();
       } else {
@@ -452,14 +436,13 @@
       setActionButtonsDisabled(false);
     }
 
-    function saveToOfflineQueue(file, guestName, wishes) {
+    function saveToOfflineQueue(file, guestName) {
       if (!db) return;
       const tx = db.transaction("uploadQueue", "readwrite");
       const store = tx.objectStore("uploadQueue");
       store.add({
         file: file,
         guestName: guestName,
-        wishes: wishes,
         timestamp: Date.now()
       });
     }
@@ -476,15 +459,9 @@
 
         for (const item of items) {
           try {
-            let formattedName = item.file.name;
-            if (item.wishes) {
-              const cleanWishes = item.wishes.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 30);
-              formattedName = `${cleanWishes}_${item.file.name}`;
-            }
-
             const sessionPayload = {
               action: "createResumableUpload",
-              fileName: formattedName,
+              fileName: item.file.name,
               mimeType: item.file.type || "application/octet-stream",
               guestName: item.guestName
             };

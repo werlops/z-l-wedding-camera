@@ -105,16 +105,6 @@
       <input type="text" id="guestName" placeholder="e.g. Sarah & Mark" onchange="saveGuestName(this.value)" />
     </div>
 
-    <div class="input-group">
-      <label for="uploadCategory">Moment Category</label>
-      <select id="uploadCategory">
-        <option value="General">✨ General</option>
-        <option value="Ceremony">💍 Ceremony</option>
-        <option value="Reception">🥂 Reception</option>
-        <option value="Party">💃 Dance</option>
-      </select>
-    </div>
-
     <button id="btnPhoto" class="btn" onclick="triggerInput('cameraPhotoInput')">📸 Take Photo</button>
     <input type="file" id="cameraPhotoInput" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
 
@@ -139,14 +129,6 @@
     <div class="section-title">
       <span>Collective Album</span>
       <button id="btnRefresh" class="btn-link" onclick="fetchGalleryData()">🔄 Refresh</button>
-    </div>
-
-    <div class="filter-bar">
-      <div class="filter-chip active" onclick="filterGallery('All', this)">All</div>
-      <div class="filter-chip" onclick="filterGallery('Ceremony', this)">💍 Ceremony</div>
-      <div class="filter-chip" onclick="filterGallery('Reception', this)">🥂 Reception</div>
-      <div class="filter-chip" onclick="filterGallery('Dance', this)">💃 Dance</div>
-      <div class="filter-chip" onclick="filterGallery('General', this)">✨ General</div>
     </div>
 
     <div id="adminIndicator" class="admin-indicator">

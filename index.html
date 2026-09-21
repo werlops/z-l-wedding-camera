@@ -44,6 +44,14 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.15); } }
 
+    /* Keyframe for Pop-up Heart Animation in Slideshow */
+    @keyframes heartPop {
+      0% { transform: scale(0.3); opacity: 0; }
+      50% { transform: scale(1.35); opacity: 1; }
+      70% { transform: scale(0.9); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
     /* Gallery & Sorting */
     .section-title { font-family: 'Georgia', serif; font-size: 20px; color: #4a3e3d; margin: 10px 0 14px; display: flex; align-items: center; justify-content: space-between; width: 100%; }
     
@@ -154,7 +162,7 @@
       animation: fadeIn 0.8s ease-in-out forwards;
     }
 
-    /* Slideshow Likes Badge Overlay */
+    /* Animated Slideshow Likes Badge Overlay */
     .slideshow-like-badge {
       position: absolute;
       bottom: 12px;
@@ -168,11 +176,17 @@
       font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
       z-index: 20;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
       border: 1px solid rgba(255, 255, 255, 0.2);
       pointer-events: none;
+      animation: heartPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .slideshow-like-badge .heart-icon-pop {
+      display: inline-block;
+      animation: heartPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
 
     /* Scatter Collage Style Animations */
@@ -406,8 +420,8 @@
     <div class="slideshow-counter" id="slideshowCounter">1 / 1</div>
     
     <!-- Wedding Audio Track -->
-    <audio id="weddingMusic" loop preload="auto">
-      <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-wedding-piano-112191.mp3" type="audio/mpeg">
+    <audio id="BGMMusic" loop preload="auto">
+      <source src="https://cdn.pixabay.com/download/audio/2026/09/15/audio_0f954b88ce.mp3?filename=andriig-wedding-wedding-music-604061.mp3" type="audio/mpeg">
     </audio>
   </div>
 
@@ -719,7 +733,6 @@
         const item = displayedItems[lightboxIndex];
         const fId = item.fileId || item.id;
         
-        // Find matching global index in allGalleryItems
         const globalIndex = allGalleryItems.findIndex(i => (i.fileId || i.id) === fId);
         if (globalIndex !== -1) {
           deleteItem(e, fId, globalIndex);
@@ -833,7 +846,6 @@
 
       uploaderSpan.innerText = item.guestName ? `Uploaded by ${item.guestName}` : 'Shared Memory';
       
-      // Toggle visibility of admin delete button inside lightbox
       deleteBtn.style.display = isAdmin ? "inline-block" : "none";
 
       likeCount.innerText = item.likes || 0;
@@ -862,7 +874,7 @@
 
     /* Admin Live Slideshow Mode with Wake Lock, Dynamic Layouts & Music */
     function toggleMusic() {
-      const music = document.getElementById("weddingMusic");
+      const music = document.getElementById("BGMMusic");
       const btn = document.getElementById("btnToggleMusic");
 
       if (music.paused) {
@@ -940,7 +952,7 @@
       if (!item) return;
 
       const likeBadgeHtml = (item.likes && item.likes > 0) 
-        ? `<div class="slideshow-like-badge">❤️ ${item.likes}</div>` 
+        ? `<div class="slideshow-like-badge"><span class="heart-icon-pop">❤️</span> ${item.likes}</div>` 
         : '';
 
       if (slideshowStyle === "single") {
@@ -1004,7 +1016,7 @@
         if (item.likes && item.likes > 0) {
           const badge = document.createElement("div");
           badge.className = "slideshow-like-badge";
-          badge.innerHTML = `❤️ ${item.likes}`;
+          badge.innerHTML = `<span class="heart-icon-pop">❤️</span> ${item.likes}`;
           wrapperEl.appendChild(badge);
         }
 
@@ -1032,7 +1044,7 @@
       modal.classList.remove("hide-ui");
 
       // Stop Audio Playback
-      const music = document.getElementById("weddingMusic");
+      const music = document.getElementById("BGMMusic");
       music.pause();
       music.currentTime = 0;
       isMusicPlaying = false;
@@ -1157,7 +1169,6 @@
       allGalleryItems.splice(index, 1);
       applySortAndRender();
 
-      // Handle lightbox view state after deletion
       if (document.getElementById("lightbox").style.display === "flex") {
         if (displayedItems.length === 0) {
           closeLightbox(null, true);

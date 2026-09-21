@@ -83,26 +83,16 @@
     .admin-controls-row { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; }
 
     /* Fullscreen Slideshow Styles */
-    #slideshowModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 3000; justify-content: center; align-items: center; }
-    #slideshowContent { max-width: 95vw; max-height: 95vh; display: flex; justify-content: center; align-items: center; }
-    .slideshow-counter { position: absolute; bottom: 20px; color: rgba(255,255,255,0.7); font-size: 14px; letter-spacing: 1px; z-index: 3100; }
+    #slideshowModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0b0b0b; z-index: 3000; justify-content: center; align-items: center; overflow: hidden; }
+    #slideshowContent { width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slideshow-counter { position: absolute; bottom: 20px; color: rgba(255,255,255,0.7); font-size: 14px; letter-spacing: 1px; z-index: 3100; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
 
-    /* Slideshow Motion & Fade Effects */
+    /* Single Mode Ken Burns Motion */
     @keyframes kenBurns {
-      0% {
-        opacity: 0;
-        transform: scale(1) translate(0, 0);
-      }
-      15% {
-        opacity: 1;
-      }
-      85% {
-        opacity: 1;
-      }
-      100% {
-        opacity: 0;
-        transform: scale(1.08) translate(-1%, -1%);
-      }
+      0% { opacity: 0; transform: scale(1) translate(0, 0); }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { opacity: 0; transform: scale(1.08) translate(-1%, -1%); }
     }
 
     .slideshow-media-container {
@@ -133,7 +123,60 @@
       animation: fadeIn 0.8s ease-in-out forwards;
     }
 
-    /* Music Control Button */
+    /* Scatter Collage Style Animations */
+    .scatter-item {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.7);
+      opacity: 0;
+      /* Extended transition time for smoother movements and subtle fades */
+      transition: top 2.5s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                  left 2.5s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                  transform 2.5s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                  opacity 2s ease-in-out,
+                  filter 2s ease-in-out;
+      border-radius: 12px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+      border: 4px solid #ffffff;
+      object-fit: cover;
+      background-color: #111111;
+      will-change: transform, opacity, top, left;
+    }
+
+    /* Active dynamic classes for collage elements */
+    .scatter-center {
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) scale(1) rotate(0deg) !important;
+      opacity: 1 !important;
+      z-index: 100 !important;
+      width: 48vw;
+      height: 60vh;
+      filter: brightness(1);
+    }
+
+    .scatter-edge {
+      opacity: 0.88 !important; /* Higher opacity so background stays filled */
+      z-index: 10 !important;
+      width: 34vw;
+      height: 42vh;
+      filter: brightness(0.85);
+    }
+
+    .scatter-exit {
+      opacity: 0 !important;
+      transform: scale(0.5) translate(-50%, -50%) !important;
+      z-index: 1 !important;
+      transition: opacity 2.8s ease-out, transform 2.8s ease-out !important;
+    }
+
+    @media (max-width: 768px) {
+      .scatter-center { width: 78vw; height: 52vh; }
+      .scatter-edge { width: 48vw; height: 32vh; }
+    }
+
+    /* Top Slideshow Control Buttons */
     .slideshow-controls {
       position: absolute;
       top: 20px;
@@ -143,7 +186,7 @@
       gap: 10px;
     }
 
-    .btn-music {
+    .btn-music, .btn-style {
       background: rgba(255, 255, 255, 0.2);
       color: #fff;
       border: 1px solid rgba(255, 255, 255, 0.4);
@@ -155,8 +198,22 @@
       transition: all 0.2s ease;
     }
 
-    .btn-music:hover {
+    .btn-music:hover, .btn-style:hover {
       background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* Auto-hide Slideshow UI Controls */
+    .slideshow-controls,
+    .slideshow-counter,
+    #slideshowModal .modal-close {
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    #slideshowModal.hide-ui .slideshow-controls,
+    #slideshowModal.hide-ui .slideshow-counter,
+    #slideshowModal.hide-ui .modal-close {
+      opacity: 0;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -246,6 +303,7 @@
   <div id="slideshowModal">
     <div class="slideshow-controls">
       <button id="btnToggleMusic" class="btn-music" onclick="toggleMusic()">🎵 Music: Off</button>
+      <button id="btnToggleStyle" class="btn-style" onclick="toggleSlideshowStyle()">✨ Mode: Collage Scatter</button>
     </div>
     <button class="modal-close" onclick="stopSlideshow()">&times;</button>
     <div id="slideshowContent"></div>
@@ -321,8 +379,27 @@
     // Slideshow state
     let slideshowTimer = null;
     let slideshowIndex = 0;
+    let randomizedPlaylist = [];
     let wakeLock = null;
     let isMusicPlaying = false;
+    let slideshowStyle = "scatter"; // "scatter" or "single"
+    let activeScatterElements = [];
+
+    // Edge presets for Scatter Mode - Expanded coverage to keep canvas filled nicely
+    const edgePositions = [
+      { top: "25%", left: "20%", rot: "-8deg" },
+      { top: "25%", left: "80%", rot: "7deg" },
+      { top: "75%", left: "22%", rot: "6deg" },
+      { top: "75%", left: "78%", rot: "-9deg" },
+      { top: "18%", left: "50%", rot: "-4deg" },
+      { top: "82%", left: "50%", rot: "5deg" },
+      { top: "50%", left: "15%", rot: "10deg" },
+      { top: "50%", left: "85%", rot: "-11deg" }
+    ];
+
+    // Inactivity State
+    let inactivityTimer = null;
+    const INACTIVITY_TIMEOUT_MS = 3000;
 
     // Refresh Optimization state
     let lastFetchTimestamp = 0;
@@ -383,14 +460,29 @@
       }
     }
 
+    /* Inactivity & UI Auto-Hide Handlers */
+    function resetInactivityTimer() {
+      const modal = document.getElementById("slideshowModal");
+      modal.classList.remove("hide-ui");
+
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        modal.classList.add("hide-ui");
+      }, INACTIVITY_TIMEOUT_MS);
+    }
+
+    function handleUserActivity() {
+      if (document.getElementById("slideshowModal").style.display === "flex") {
+        resetInactivityTimer();
+      }
+    }
+
     /* Refresh Optimization & Smart Throttle Handler */
     function handleVisibilityOrFocus() {
-      // Re-acquire Wake Lock if returning to tab while slideshow active
       if (document.visibilityState === 'visible' && document.getElementById("slideshowModal").style.display === "flex") {
         requestWakeLock();
       }
 
-      // Check throttle duration before triggering API call
       if (document.visibilityState === 'visible') {
         const timeElapsed = Date.now() - lastFetchTimestamp;
         if (timeElapsed > REFRESH_THROTTLE_MS) {
@@ -546,7 +638,7 @@
       document.getElementById("galleryGrid").scrollIntoView({ behavior: "smooth" });
     }
 
-    /* Admin Live Slideshow Mode with Wake Lock & Music */
+    /* Admin Live Slideshow Mode with Wake Lock, Dynamic Layouts & Music */
     function toggleMusic() {
       const music = document.getElementById("weddingMusic");
       const btn = document.getElementById("btnToggleMusic");
@@ -565,49 +657,140 @@
       }
     }
 
+    function toggleSlideshowStyle() {
+      slideshowStyle = (slideshowStyle === "scatter") ? "single" : "scatter";
+      const btn = document.getElementById("btnToggleStyle");
+      btn.innerText = (slideshowStyle === "scatter") ? "✨ Mode: Collage Scatter" : "🖼️ Mode: Ken Burns Single";
+      
+      document.getElementById("slideshowContent").innerHTML = "";
+      activeScatterElements = [];
+      showSlideshowItem();
+    }
+
+    function shufflePlaylist() {
+      randomizedPlaylist = [...allGalleryItems];
+      for (let i = randomizedPlaylist.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [randomizedPlaylist[i], randomizedPlaylist[j]] = [randomizedPlaylist[j], randomizedPlaylist[i]];
+      }
+    }
+
     async function startSlideshow() {
       if (!allGalleryItems || allGalleryItems.length === 0) {
         alert("No photos or videos available for slideshow.");
         return;
       }
       
-      // Activate Screen Wake Lock
       await requestWakeLock();
 
+      shufflePlaylist();
       slideshowIndex = 0;
-      document.getElementById("slideshowModal").style.display = "flex";
+      activeScatterElements = [];
+      
+      const modal = document.getElementById("slideshowModal");
+      document.getElementById("slideshowContent").innerHTML = "";
+      modal.style.display = "flex";
+
+      window.addEventListener("mousemove", handleUserActivity);
+      window.addEventListener("touchstart", handleUserActivity);
+      window.addEventListener("keydown", handleUserActivity);
+
+      resetInactivityTimer();
       showSlideshowItem();
 
       if (slideshowTimer) clearInterval(slideshowTimer);
       slideshowTimer = setInterval(() => {
-        slideshowIndex = (slideshowIndex + 1) % allGalleryItems.length;
+        slideshowIndex++;
+        if (slideshowIndex >= randomizedPlaylist.length) {
+          shufflePlaylist();
+          slideshowIndex = 0;
+        }
         showSlideshowItem();
       }, 5000);
     }
 
     function showSlideshowItem() {
-      const item = allGalleryItems[slideshowIndex];
+      const item = randomizedPlaylist[slideshowIndex];
       const container = document.getElementById("slideshowContent");
       const counter = document.getElementById("slideshowCounter");
 
       if (!item) return;
 
-      if (item.mimeType.startsWith("video/")) {
-        container.innerHTML = `
-          <div class="slideshow-media-container">
-            <video key="${item.fullUrl}" src="${item.fullUrl}" autoplay loop muted playsinline></video>
-          </div>`;
+      if (slideshowStyle === "single") {
+        container.innerHTML = "";
+        activeScatterElements = [];
+        if (item.mimeType.startsWith("video/")) {
+          container.innerHTML = `
+            <div class="slideshow-media-container">
+              <video key="${item.fullUrl}" src="${item.fullUrl}" autoplay loop muted playsinline></video>
+            </div>`;
+        } else {
+          container.innerHTML = `
+            <div class="slideshow-media-container">
+              <img key="${item.fullUrl}" src="${item.fullUrl}" />
+            </div>`;
+        }
       } else {
-        container.innerHTML = `
-          <div class="slideshow-media-container">
-            <img key="${item.fullUrl}" src="${item.fullUrl}" />
-          </div>`;
+        // Collage Scatter Mode
+        
+        // 1. Shift current center image out to an edge location smooth & slow
+        if (activeScatterElements.length > 0) {
+          const currentCenter = activeScatterElements[activeScatterElements.length - 1];
+          currentCenter.el.classList.remove("scatter-center");
+          currentCenter.el.classList.add("scatter-edge");
+
+          const edgePos = edgePositions[activeScatterElements.length % edgePositions.length];
+          currentCenter.el.style.top = edgePos.top;
+          currentCenter.el.style.left = edgePos.left;
+          currentCenter.el.style.transform = `translate(-50%, -50%) rotate(${edgePos.rot}) scale(0.95)`;
+        }
+
+        // 2. Allow up to 7 visible edge images to keep the canvas filled
+        if (activeScatterElements.length >= 7) {
+          const oldest = activeScatterElements.shift();
+          oldest.el.classList.add("scatter-exit");
+          setTimeout(() => { if (oldest.el.parentNode) oldest.el.remove(); }, 2800);
+        }
+
+        // 3. Create incoming media element with initial state for Smooth Fade-In
+        let newEl;
+        if (item.mimeType.startsWith("video/")) {
+          newEl = document.createElement("video");
+          newEl.src = item.fullUrl;
+          newEl.autoplay = true;
+          newEl.loop = true;
+          newEl.muted = true;
+          newEl.playsInline = true;
+        } else {
+          newEl = document.createElement("img");
+          newEl.src = item.fullUrl;
+        }
+
+        newEl.className = "scatter-item";
+        container.appendChild(newEl);
+
+        // Force browser layout repaint to register starting CSS state
+        void newEl.offsetWidth;
+
+        // Apply center state so it smoothly fades in & scales up to center
+        newEl.classList.add("scatter-center");
+
+        activeScatterElements.push({ el: newEl, item: item });
       }
-      counter.innerText = `${slideshowIndex + 1} / ${allGalleryItems.length}`;
+
+      counter.innerText = `${slideshowIndex + 1} / ${randomizedPlaylist.length} (Randomized)`;
     }
 
     function stopSlideshow() {
       if (slideshowTimer) clearInterval(slideshowTimer);
+      clearTimeout(inactivityTimer);
+
+      window.removeEventListener("mousemove", handleUserActivity);
+      window.removeEventListener("touchstart", handleUserActivity);
+      window.removeEventListener("keydown", handleUserActivity);
+
+      const modal = document.getElementById("slideshowModal");
+      modal.classList.remove("hide-ui");
 
       // Stop Audio Playback
       const music = document.getElementById("weddingMusic");
@@ -616,10 +799,10 @@
       isMusicPlaying = false;
       document.getElementById("btnToggleMusic").innerText = "🎵 Music: Off";
 
-      document.getElementById("slideshowModal").style.display = "none";
+      modal.style.display = "none";
       document.getElementById("slideshowContent").innerHTML = "";
+      activeScatterElements = [];
       
-      // Release Screen Wake Lock
       releaseWakeLock();
     }
 
@@ -846,7 +1029,6 @@
         thankYouBox.style.display = "block";
         event.target.value = "";
         
-        // Force refresh upon successful upload
         fetchGalleryData(true);
       } else {
         status.innerText = "Upload queued. Will retry when connection stabilizes.";

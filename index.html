@@ -66,8 +66,25 @@
     .pagination-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 16px; padding-top: 12px; border-top: 1px solid #eae2d6; }
     .page-info { font-size: 13px; color: #6f6053; font-weight: 500; }
 
-    .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
-    .modal img { max-width: 90%; max-height: 70vh; border-radius: 12px; }
+    /* Modals & Lightbox Interactive View */
+    .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); justify-content: center; align-items: center; flex-direction: column; padding: 20px; touch-action: pan-y; }
+    
+    /* Interactive Lightbox CSS */
+    .lightbox-wrapper { position: relative; width: 100%; max-width: 90vw; max-height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center; user-select: none; }
+    .lightbox-media-container { position: relative; display: flex; justify-content: center; align-items: center; max-width: 100%; max-height: 75vh; }
+    .lightbox-media-container img, .lightbox-media-container video { max-width: 90vw; max-height: 72vh; border-radius: 12px; object-fit: contain; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+    
+    .lightbox-nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.25); border: 1px solid rgba(255, 255, 255, 0.4); color: white; font-size: 22px; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; backdrop-filter: blur(4px); z-index: 3105; transition: background 0.2s, transform 0.2s; }
+    .lightbox-nav-btn:hover { background: rgba(255, 255, 255, 0.45); }
+    .lightbox-nav-btn.prev { left: 10px; }
+    .lightbox-nav-btn.next { right: 10px; }
+    
+    .lightbox-footer { margin-top: 14px; display: flex; align-items: center; justify-content: space-between; width: 90vw; max-width: 400px; color: rgba(255, 255, 255, 0.85); font-size: 13px; z-index: 3105; }
+    .lightbox-uploader { font-weight: 500; font-size: 13px; }
+    .lightbox-like-btn { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.4); color: white; border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(4px); transition: transform 0.15s, background 0.2s; }
+    .lightbox-like-btn:active { transform: scale(0.9); }
+    .lightbox-like-btn.reacted { background: #e74c3c; border-color: #e74c3c; color: white; }
+
     .modal-card { background: white; padding: 24px; border-radius: 20px; max-width: 320px; width: 90%; text-align: center; }
     .modal-card img { width: 200px; height: 200px; margin: 12px 0; }
     .modal-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 28px; cursor: pointer; background: none; border: none; z-index: 3101; }
@@ -353,9 +370,20 @@
   <button class="btn-link" onclick="openAdminModal()" style="margin-bottom: 20px; font-size: 11px; opacity: 0.6;">🔒 Admin Login</button>
 
   <!-- Modals -->
-  <div id="lightbox" class="modal" onclick="closeLightbox()">
-    <button class="modal-close">&times;</button>
-    <div id="modalContent"></div>
+  <div id="lightbox" class="modal" onclick="closeLightbox(event)">
+    <button class="modal-close" onclick="closeLightbox(event, true)">&times;</button>
+    <button class="lightbox-nav-btn prev" onclick="event.stopPropagation(); navigateLightbox(-1)">&#10094;</button>
+    <button class="lightbox-nav-btn next" onclick="event.stopPropagation(); navigateLightbox(1)">&#10095;</button>
+    
+    <div class="lightbox-wrapper" onclick="event.stopPropagation()">
+      <div class="lightbox-media-container" id="lightboxMediaContainer"></div>
+      <div class="lightbox-footer">
+        <span class="lightbox-uploader" id="lightboxUploader"></span>
+        <button id="lightboxLikeBtn" class="lightbox-like-btn" onclick="handleLightboxLikeToggle(event)">
+          <span id="lightboxLikeIcon">♡</span> <span id="lightboxLikeCount">0</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <div id="slideshowModal">
@@ -368,8 +396,8 @@
     <div class="slideshow-counter" id="slideshowCounter">1 / 1</div>
     
     <!-- Wedding Audio Track -->
-    <audio id="BGMMusic" loop preload="auto">
-      <source src="https://cdn.pixabay.com/download/audio/2026/09/15/audio_0f954b88ce.mp3?filename=andriig-wedding-wedding-music-604061.mp3" type="audio/mpeg">
+    <audio id="weddingMusic" loop preload="auto">
+      <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-wedding-piano-112191.mp3" type="audio/mpeg">
     </audio>
   </div>
 
@@ -434,6 +462,11 @@
     let isAdmin = false;
     let activePasscode = "";
 
+    // Lightbox / Pop-up State
+    let lightboxIndex = -1;
+    let touchStartX = 0;
+    let touchEndX = 0;
+
     // Slideshow state
     let slideshowTimer = null;
     let slideshowIndex = 0;
@@ -482,6 +515,20 @@
       window.addEventListener('offline', updateNetworkStatus);
       updateNetworkStatus();
 
+      // Keyboard support for Lightbox
+      window.addEventListener('keydown', handleGlobalKeydown);
+
+      // Touch gesture support for Lightbox swipe
+      const lightboxModal = document.getElementById("lightbox");
+      lightboxModal.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+
+      lightboxModal.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipeGesture();
+      }, { passive: true });
+
       // Initial Fetch
       fetchGalleryData(true);
 
@@ -497,6 +544,28 @@
         syncOfflineQueue();
       } else {
         banner.style.display = "block";
+      }
+    }
+
+    /* Keyboard navigation */
+    function handleGlobalKeydown(e) {
+      const lightbox = document.getElementById("lightbox");
+      if (lightbox.style.display === "flex") {
+        if (e.key === "ArrowLeft") navigateLightbox(-1);
+        if (e.key === "ArrowRight") navigateLightbox(1);
+        if (e.key === "Escape") closeLightbox(e, true);
+      }
+    }
+
+    /* Swipe Gesture Support */
+    function handleSwipeGesture() {
+      const lightbox = document.getElementById("lightbox");
+      if (lightbox.style.display !== "flex") return;
+      const swipeThreshold = 40;
+      if (touchEndX < touchStartX - swipeThreshold) {
+        navigateLightbox(1);
+      } else if (touchEndX > touchStartX + swipeThreshold) {
+        navigateLightbox(-1);
       }
     }
 
@@ -572,6 +641,11 @@
             document.getElementById("photoCount").innerText = data.count;
             allGalleryItems = (data.items || []).slice().reverse();
             applySortAndRender();
+
+            // Refresh open lightbox content if currently viewing
+            if (lightboxIndex >= 0 && lightboxIndex < displayedItems.length) {
+              renderLightboxContent();
+            }
           }
         })
         .catch(() => {
@@ -591,7 +665,7 @@
     }
 
     async function toggleLike(e, fileId) {
-      e.stopPropagation();
+      if (e) e.stopPropagation();
       const reactedMap = getReactedMap();
       const isCurrentlyReacted = !!reactedMap[fileId];
       const newReactedState = !isCurrentlyReacted;
@@ -606,6 +680,10 @@
 
       applySortAndRender();
 
+      if (lightboxIndex >= 0 && lightboxIndex < displayedItems.length) {
+        renderLightboxContent();
+      }
+
       try {
         await fetch(API_URL, {
           method: "POST",
@@ -614,6 +692,14 @@
         });
       } catch (err) {
         console.warn("Failed to sync like count:", err);
+      }
+    }
+
+    function handleLightboxLikeToggle(e) {
+      if (lightboxIndex >= 0 && lightboxIndex < displayedItems.length) {
+        const item = displayedItems[lightboxIndex];
+        const fId = item.fileId || item.id;
+        toggleLike(e, fId);
       }
     }
 
@@ -651,6 +737,7 @@
       const reactedMap = getReactedMap();
 
       pageItems.forEach((item, index) => {
+        const globalIndex = startIndex + index;
         const div = document.createElement("div");
         div.className = "gallery-item";
         const fId = item.fileId || item.id;
@@ -666,16 +753,12 @@
         mediaHtml += `<button class="like-btn ${isReacted ? 'reacted' : ''}" onclick="toggleLike(event, '${fId}')">${isReacted ? '❤️' : '♡'} ${item.likes || 0}</button>`;
 
         if (isAdmin) {
-          mediaHtml += `<button class="admin-delete-btn" onclick="deleteItem(event, '${fId}', ${startIndex + index})">&times;</button>`;
+          mediaHtml += `<button class="admin-delete-btn" onclick="deleteItem(event, '${fId}', ${globalIndex})">&times;</button>`;
         }
 
         div.innerHTML = mediaHtml;
         div.onclick = () => {
-          if (item.mimeType.startsWith("video/")) {
-            window.open(item.viewUrl, "_blank");
-          } else {
-            openLightbox(item.fullUrl);
-          }
+          openLightbox(globalIndex);
         };
 
         grid.appendChild(div);
@@ -697,9 +780,61 @@
       document.getElementById("galleryGrid").scrollIntoView({ behavior: "smooth" });
     }
 
+    /* Lightbox Modal & Navigation */
+    function openLightbox(index) {
+      lightboxIndex = index;
+      renderLightboxContent();
+      document.getElementById("lightbox").style.display = "flex";
+    }
+
+    function renderLightboxContent() {
+      if (lightboxIndex < 0 || lightboxIndex >= displayedItems.length) return;
+      const item = displayedItems[lightboxIndex];
+      const container = document.getElementById("lightboxMediaContainer");
+      const uploaderSpan = document.getElementById("lightboxUploader");
+      const likeBtn = document.getElementById("lightboxLikeBtn");
+      const likeIcon = document.getElementById("lightboxLikeIcon");
+      const likeCount = document.getElementById("lightboxLikeCount");
+
+      const fId = item.fileId || item.id;
+      const reactedMap = getReactedMap();
+      const isReacted = !!reactedMap[fId];
+
+      if (item.mimeType && item.mimeType.startsWith("video/")) {
+        container.innerHTML = `<video src="${item.fullUrl}" controls autoplay playsinline style="max-width: 90vw; max-height: 72vh; border-radius: 12px;"></video>`;
+      } else {
+        container.innerHTML = `<img src="${item.fullUrl}" style="max-width: 90vw; max-height: 72vh; border-radius: 12px; object-fit: contain;" />`;
+      }
+
+      uploaderSpan.innerText = item.guestName ? `Uploaded by ${item.guestName}` : 'Shared Memory';
+      
+      likeCount.innerText = item.likes || 0;
+      if (isReacted) {
+        likeBtn.classList.add("reacted");
+        likeIcon.innerText = "❤️";
+      } else {
+        likeBtn.classList.remove("reacted");
+        likeIcon.innerText = "♡";
+      }
+    }
+
+    function navigateLightbox(direction) {
+      if (displayedItems.length === 0) return;
+      lightboxIndex = (lightboxIndex + direction + displayedItems.length) % displayedItems.length;
+      renderLightboxContent();
+    }
+
+    function closeLightbox(e, force = false) {
+      if (force || e.target.id === "lightbox") {
+        document.getElementById("lightbox").style.display = "none";
+        document.getElementById("lightboxMediaContainer").innerHTML = "";
+        lightboxIndex = -1;
+      }
+    }
+
     /* Admin Live Slideshow Mode with Wake Lock, Dynamic Layouts & Music */
     function toggleMusic() {
-      const music = document.getElementById("BGMMusic");
+      const music = document.getElementById("weddingMusic");
       const btn = document.getElementById("btnToggleMusic");
 
       if (music.paused) {
@@ -869,7 +1004,7 @@
       modal.classList.remove("hide-ui");
 
       // Stop Audio Playback
-      const music = document.getElementById("BGMMusic");
+      const music = document.getElementById("weddingMusic");
       music.pause();
       music.currentTime = 0;
       isMusicPlaying = false;
@@ -983,17 +1118,6 @@
 
       allGalleryItems.splice(index, 1);
       applySortAndRender();
-    }
-
-    function openLightbox(url) {
-      const modal = document.getElementById("lightbox");
-      const content = document.getElementById("modalContent");
-      content.innerHTML = `<img src="${url}" />`;
-      modal.style.display = "flex";
-    }
-
-    function closeLightbox() {
-      document.getElementById("lightbox").style.display = "none";
     }
 
     function openQRModal() {

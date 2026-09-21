@@ -128,52 +128,56 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%) scale(0.7);
+      transform: translate(-50%, -50%) scale(0.6);
       opacity: 0;
-      /* Extended transition time for smoother movements and subtle fades */
-      transition: top 2.5s cubic-bezier(0.2, 0.8, 0.2, 1), 
-                  left 2.5s cubic-bezier(0.2, 0.8, 0.2, 1), 
-                  transform 2.5s cubic-bezier(0.2, 0.8, 0.2, 1), 
+      /* Extended transition time for smooth movement, scaling & opacity transitions */
+      transition: top 2.8s cubic-bezier(0.25, 1, 0.5, 1), 
+                  left 2.8s cubic-bezier(0.25, 1, 0.5, 1), 
+                  transform 2.8s cubic-bezier(0.25, 1, 0.5, 1), 
                   opacity 2s ease-in-out,
                   filter 2s ease-in-out;
-      border-radius: 12px;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+      border-radius: 10px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
       border: 4px solid #ffffff;
-      object-fit: cover;
-      background-color: #111111;
+      /* Respect original aspect ratio without cropping */
+      object-fit: contain;
+      width: auto;
+      height: auto;
+      background-color: transparent;
       will-change: transform, opacity, top, left;
     }
 
-    /* Active dynamic classes for collage elements */
+    /* Center focused state */
     .scatter-center {
       top: 50% !important;
       left: 50% !important;
       transform: translate(-50%, -50%) scale(1) rotate(0deg) !important;
       opacity: 1 !important;
       z-index: 100 !important;
-      width: 48vw;
-      height: 60vh;
+      max-width: 52vw;
+      max-height: 65vh;
       filter: brightness(1);
     }
 
+    /* Edge scattered state - preserves dynamic bounds & aspect ratio */
     .scatter-edge {
-      opacity: 0.88 !important; /* Higher opacity so background stays filled */
+      opacity: 0.85 !important;
       z-index: 10 !important;
-      width: 34vw;
-      height: 42vh;
-      filter: brightness(0.85);
+      max-width: 36vw;
+      max-height: 44vh;
+      filter: brightness(0.88);
     }
 
     .scatter-exit {
       opacity: 0 !important;
-      transform: scale(0.5) translate(-50%, -50%) !important;
+      transform: scale(0.4) translate(-50%, -50%) !important;
       z-index: 1 !important;
-      transition: opacity 2.8s ease-out, transform 2.8s ease-out !important;
+      transition: opacity 2.5s ease-out, transform 2.5s ease-out !important;
     }
 
     @media (max-width: 768px) {
-      .scatter-center { width: 78vw; height: 52vh; }
-      .scatter-edge { width: 48vw; height: 32vh; }
+      .scatter-center { max-width: 82vw; max-height: 55vh; }
+      .scatter-edge { max-width: 48vw; max-height: 35vh; }
     }
 
     /* Top Slideshow Control Buttons */
@@ -384,17 +388,18 @@
     let isMusicPlaying = false;
     let slideshowStyle = "scatter"; // "scatter" or "single"
     let activeScatterElements = [];
+    let edgeSlotIndex = 0;
 
-    // Edge presets for Scatter Mode - Expanded coverage to keep canvas filled nicely
-    const edgePositions = [
-      { top: "25%", left: "20%", rot: "-8deg" },
-      { top: "25%", left: "80%", rot: "7deg" },
-      { top: "75%", left: "22%", rot: "6deg" },
-      { top: "75%", left: "78%", rot: "-9deg" },
-      { top: "18%", left: "50%", rot: "-4deg" },
-      { top: "82%", left: "50%", rot: "5deg" },
-      { top: "50%", left: "15%", rot: "10deg" },
-      { top: "50%", left: "85%", rot: "-11deg" }
+    // Multi-directional Edge Slots for balanced all-around screen coverage
+    const edgeSlots = [
+      { top: "22%", left: "22%", rot: "-6deg" },  // Top-Left
+      { top: "22%", left: "78%", rot: "7deg" },   // Top-Right
+      { top: "78%", left: "22%", rot: "5deg" },   // Bottom-Left
+      { top: "78%", left: "78%", rot: "-8deg" },  // Bottom-Right
+      { top: "50%", left: "16%", rot: "9deg" },   // Middle-Left
+      { top: "50%", left: "84%", rot: "-10deg" },  // Middle-Right
+      { top: "16%", left: "50%", rot: "-4deg" },  // Top-Center
+      { top: "84%", left: "50%", rot: "4deg" }    // Bottom-Center
     ];
 
     // Inactivity State
@@ -686,6 +691,7 @@
       shufflePlaylist();
       slideshowIndex = 0;
       activeScatterElements = [];
+      edgeSlotIndex = 0;
       
       const modal = document.getElementById("slideshowModal");
       document.getElementById("slideshowContent").innerHTML = "";
@@ -731,28 +737,30 @@
             </div>`;
         }
       } else {
-        // Collage Scatter Mode
+        // Collage Scatter Mode (Balanced Filling & Original Ratios)
         
-        // 1. Shift current center image out to an edge location smooth & slow
+        // 1. Shift current center image to a specific perimeter slot in a balanced round-robin direction
         if (activeScatterElements.length > 0) {
           const currentCenter = activeScatterElements[activeScatterElements.length - 1];
           currentCenter.el.classList.remove("scatter-center");
           currentCenter.el.classList.add("scatter-edge");
 
-          const edgePos = edgePositions[activeScatterElements.length % edgePositions.length];
-          currentCenter.el.style.top = edgePos.top;
-          currentCenter.el.style.left = edgePos.left;
-          currentCenter.el.style.transform = `translate(-50%, -50%) rotate(${edgePos.rot}) scale(0.95)`;
+          const slot = edgeSlots[edgeSlotIndex % edgeSlots.length];
+          edgeSlotIndex++;
+
+          currentCenter.el.style.top = slot.top;
+          currentCenter.el.style.left = slot.left;
+          currentCenter.el.style.transform = `translate(-50%, -50%) rotate(${slot.rot}) scale(0.92)`;
         }
 
-        // 2. Allow up to 7 visible edge images to keep the canvas filled
-        if (activeScatterElements.length >= 7) {
+        // 2. Retain up to 8 photos distributed around edge spaces
+        if (activeScatterElements.length >= 8) {
           const oldest = activeScatterElements.shift();
           oldest.el.classList.add("scatter-exit");
-          setTimeout(() => { if (oldest.el.parentNode) oldest.el.remove(); }, 2800);
+          setTimeout(() => { if (oldest.el.parentNode) oldest.el.remove(); }, 2500);
         }
 
-        // 3. Create incoming media element with initial state for Smooth Fade-In
+        // 3. Create incoming element preserving native aspect ratios
         let newEl;
         if (item.mimeType.startsWith("video/")) {
           newEl = document.createElement("video");
@@ -772,7 +780,7 @@
         // Force browser layout repaint to register starting CSS state
         void newEl.offsetWidth;
 
-        // Apply center state so it smoothly fades in & scales up to center
+        // Animate smoothly to central focus
         newEl.classList.add("scatter-center");
 
         activeScatterElements.push({ el: newEl, item: item });

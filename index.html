@@ -158,6 +158,20 @@
     .btn-music:hover {
       background: rgba(255, 255, 255, 0.35);
     }
+
+    /* Auto-hide Slideshow UI Controls */
+    .slideshow-controls,
+    .slideshow-counter,
+    #slideshowModal .modal-close {
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    #slideshowModal.hide-ui .slideshow-controls,
+    #slideshowModal.hide-ui .slideshow-counter,
+    #slideshowModal.hide-ui .modal-close {
+      opacity: 0;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -324,6 +338,10 @@
     let wakeLock = null;
     let isMusicPlaying = false;
 
+    // Inactivity State
+    let inactivityTimer = null;
+    const INACTIVITY_TIMEOUT_MS = 3000;
+
     // Refresh Optimization state
     let lastFetchTimestamp = 0;
     const REFRESH_THROTTLE_MS = 120000; // 2 minutes limit
@@ -380,6 +398,23 @@
         wakeLock.release()
           .then(() => { wakeLock = null; })
           .catch(err => console.warn("Wake Lock release error:", err));
+      }
+    }
+
+    /* Inactivity & UI Auto-Hide Handlers */
+    function resetInactivityTimer() {
+      const modal = document.getElementById("slideshowModal");
+      modal.classList.remove("hide-ui");
+
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        modal.classList.add("hide-ui");
+      }, INACTIVITY_TIMEOUT_MS);
+    }
+
+    function handleUserActivity() {
+      if (document.getElementById("slideshowModal").style.display === "flex") {
+        resetInactivityTimer();
       }
     }
 
@@ -546,7 +581,7 @@
       document.getElementById("galleryGrid").scrollIntoView({ behavior: "smooth" });
     }
 
-    /* Admin Live Slideshow Mode with Wake Lock & Music */
+    /* Admin Live Slideshow Mode with Wake Lock, Music & Auto-Hiding Controls */
     function toggleMusic() {
       const music = document.getElementById("weddingMusic");
       const btn = document.getElementById("btnToggleMusic");
@@ -575,7 +610,15 @@
       await requestWakeLock();
 
       slideshowIndex = 0;
-      document.getElementById("slideshowModal").style.display = "flex";
+      const modal = document.getElementById("slideshowModal");
+      modal.style.display = "flex";
+
+      // Attach activity listeners for mouse, touch, and keyboard
+      window.addEventListener("mousemove", handleUserActivity);
+      window.addEventListener("touchstart", handleUserActivity);
+      window.addEventListener("keydown", handleUserActivity);
+
+      resetInactivityTimer();
       showSlideshowItem();
 
       if (slideshowTimer) clearInterval(slideshowTimer);
@@ -608,6 +651,15 @@
 
     function stopSlideshow() {
       if (slideshowTimer) clearInterval(slideshowTimer);
+      clearTimeout(inactivityTimer);
+
+      // Detach user interaction listeners
+      window.removeEventListener("mousemove", handleUserActivity);
+      window.removeEventListener("touchstart", handleUserActivity);
+      window.removeEventListener("keydown", handleUserActivity);
+
+      const modal = document.getElementById("slideshowModal");
+      modal.classList.remove("hide-ui");
 
       // Stop Audio Playback
       const music = document.getElementById("weddingMusic");
@@ -616,7 +668,7 @@
       isMusicPlaying = false;
       document.getElementById("btnToggleMusic").innerText = "🎵 Music: Off";
 
-      document.getElementById("slideshowModal").style.display = "none";
+      modal.style.display = "none";
       document.getElementById("slideshowContent").innerHTML = "";
       
       // Release Screen Wake Lock

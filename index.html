@@ -95,6 +95,13 @@
       100% { opacity: 0; transform: scale(1.08) translate(-1%, -1%); }
     }
 
+    .slideshow-media-wrapper {
+      position: relative;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+    }
+
     .slideshow-media-container {
       display: flex;
       justify-content: center;
@@ -123,6 +130,27 @@
       animation: fadeIn 0.8s ease-in-out forwards;
     }
 
+    /* Slideshow Likes Badge Overlay */
+    .slideshow-like-badge {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      color: #ffffff;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      z-index: 20;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      pointer-events: none;
+    }
+
     /* Scatter Collage Style Animations */
     .scatter-item {
       position: absolute;
@@ -130,7 +158,6 @@
       left: 50%;
       transform: translate(-50%, -50%) scale(0.6);
       opacity: 0;
-      /* Extended transition time for smooth movement, scaling & opacity transitions */
       transition: top 2.8s cubic-bezier(0.25, 1, 0.5, 1), 
                   left 2.8s cubic-bezier(0.25, 1, 0.5, 1), 
                   transform 2.8s cubic-bezier(0.25, 1, 0.5, 1), 
@@ -139,12 +166,35 @@
       border-radius: 10px;
       box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
       border: 4px solid #ffffff;
-      /* Respect original aspect ratio without cropping */
       object-fit: contain;
       width: auto;
       height: auto;
       background-color: transparent;
       will-change: transform, opacity, top, left;
+    }
+
+    .scatter-wrapper {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.6);
+      opacity: 0;
+      transition: top 2.8s cubic-bezier(0.25, 1, 0.5, 1), 
+                  left 2.8s cubic-bezier(0.25, 1, 0.5, 1), 
+                  transform 2.8s cubic-bezier(0.25, 1, 0.5, 1), 
+                  opacity 2s ease-in-out,
+                  filter 2s ease-in-out;
+      will-change: transform, opacity, top, left;
+      display: inline-block;
+    }
+
+    .scatter-wrapper .scatter-item {
+      position: relative;
+      top: auto;
+      left: auto;
+      transform: none;
+      opacity: 1;
+      transition: none;
     }
 
     /* Center focused state */
@@ -154,18 +204,22 @@
       transform: translate(-50%, -50%) scale(1) rotate(0deg) !important;
       opacity: 1 !important;
       z-index: 100 !important;
-      max-width: 52vw;
-      max-height: 65vh;
       filter: brightness(1);
     }
+    .scatter-center .scatter-item {
+      max-width: 52vw;
+      max-height: 65vh;
+    }
 
-    /* Edge scattered state - preserves dynamic bounds & aspect ratio */
+    /* Edge scattered state */
     .scatter-edge {
       opacity: 0.85 !important;
       z-index: 10 !important;
+      filter: brightness(0.88);
+    }
+    .scatter-edge .scatter-item {
       max-width: 36vw;
       max-height: 44vh;
-      filter: brightness(0.88);
     }
 
     .scatter-exit {
@@ -176,8 +230,8 @@
     }
 
     @media (max-width: 768px) {
-      .scatter-center { max-width: 82vw; max-height: 55vh; }
-      .scatter-edge { max-width: 48vw; max-height: 35vh; }
+      .scatter-center .scatter-item { max-width: 82vw; max-height: 55vh; }
+      .scatter-edge .scatter-item { max-width: 48vw; max-height: 35vh; }
     }
 
     /* Top Slideshow Control Buttons */
@@ -314,8 +368,8 @@
     <div class="slideshow-counter" id="slideshowCounter">1 / 1</div>
     
     <!-- Wedding Audio Track -->
-    <audio id="weddingMusic" loop preload="auto">
-      <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-wedding-piano-112191.mp3" type="audio/mpeg">
+    <audio id="BGMMusic" loop preload="auto">
+      <source src="https://cdn.pixabay.com/download/audio/2026/09/15/audio_0f954b88ce.mp3?filename=andriig-wedding-wedding-music-604061.mp3" type="audio/mpeg">
     </audio>
   </div>
 
@@ -645,7 +699,7 @@
 
     /* Admin Live Slideshow Mode with Wake Lock, Dynamic Layouts & Music */
     function toggleMusic() {
-      const music = document.getElementById("weddingMusic");
+      const music = document.getElementById("BGMMusic");
       const btn = document.getElementById("btnToggleMusic");
 
       if (music.paused) {
@@ -722,24 +776,29 @@
 
       if (!item) return;
 
+      const likeBadgeHtml = (item.likes && item.likes > 0) 
+        ? `<div class="slideshow-like-badge">❤️ ${item.likes}</div>` 
+        : '';
+
       if (slideshowStyle === "single") {
         container.innerHTML = "";
         activeScatterElements = [];
-        if (item.mimeType.startsWith("video/")) {
-          container.innerHTML = `
-            <div class="slideshow-media-container">
-              <video key="${item.fullUrl}" src="${item.fullUrl}" autoplay loop muted playsinline></video>
-            </div>`;
-        } else {
-          container.innerHTML = `
-            <div class="slideshow-media-container">
-              <img key="${item.fullUrl}" src="${item.fullUrl}" />
-            </div>`;
-        }
+
+        let mediaElementHtml = item.mimeType.startsWith("video/")
+          ? `<video key="${item.fullUrl}" src="${item.fullUrl}" autoplay loop muted playsinline></video>`
+          : `<img key="${item.fullUrl}" src="${item.fullUrl}" />`;
+
+        container.innerHTML = `
+          <div class="slideshow-media-container">
+            <div class="slideshow-media-wrapper">
+              ${mediaElementHtml}
+              ${likeBadgeHtml}
+            </div>
+          </div>`;
       } else {
-        // Collage Scatter Mode (Balanced Filling & Original Ratios)
+        // Collage Scatter Mode
         
-        // 1. Shift current center image to a specific perimeter slot in a balanced round-robin direction
+        // 1. Shift current center image to edge
         if (activeScatterElements.length > 0) {
           const currentCenter = activeScatterElements[activeScatterElements.length - 1];
           currentCenter.el.classList.remove("scatter-center");
@@ -753,37 +812,46 @@
           currentCenter.el.style.transform = `translate(-50%, -50%) rotate(${slot.rot}) scale(0.92)`;
         }
 
-        // 2. Retain up to 8 photos distributed around edge spaces
+        // 2. Limit maximum scattered items
         if (activeScatterElements.length >= 8) {
           const oldest = activeScatterElements.shift();
           oldest.el.classList.add("scatter-exit");
           setTimeout(() => { if (oldest.el.parentNode) oldest.el.remove(); }, 2500);
         }
 
-        // 3. Create incoming element preserving native aspect ratios
-        let newEl;
+        // 3. Create incoming wrapper container
+        const wrapperEl = document.createElement("div");
+        wrapperEl.className = "scatter-wrapper";
+
+        let mediaEl;
         if (item.mimeType.startsWith("video/")) {
-          newEl = document.createElement("video");
-          newEl.src = item.fullUrl;
-          newEl.autoplay = true;
-          newEl.loop = true;
-          newEl.muted = true;
-          newEl.playsInline = true;
+          mediaEl = document.createElement("video");
+          mediaEl.src = item.fullUrl;
+          mediaEl.autoplay = true;
+          mediaEl.loop = true;
+          mediaEl.muted = true;
+          mediaEl.playsInline = true;
         } else {
-          newEl = document.createElement("img");
-          newEl.src = item.fullUrl;
+          mediaEl = document.createElement("img");
+          mediaEl.src = item.fullUrl;
+        }
+        mediaEl.className = "scatter-item";
+        wrapperEl.appendChild(mediaEl);
+
+        if (item.likes && item.likes > 0) {
+          const badge = document.createElement("div");
+          badge.className = "slideshow-like-badge";
+          badge.innerHTML = `❤️ ${item.likes}`;
+          wrapperEl.appendChild(badge);
         }
 
-        newEl.className = "scatter-item";
-        container.appendChild(newEl);
+        container.appendChild(wrapperEl);
 
-        // Force browser layout repaint to register starting CSS state
-        void newEl.offsetWidth;
+        void wrapperEl.offsetWidth;
 
-        // Animate smoothly to central focus
-        newEl.classList.add("scatter-center");
+        wrapperEl.classList.add("scatter-center");
 
-        activeScatterElements.push({ el: newEl, item: item });
+        activeScatterElements.push({ el: wrapperEl, item: item });
       }
 
       counter.innerText = `${slideshowIndex + 1} / ${randomizedPlaylist.length} (Randomized)`;
@@ -801,7 +869,7 @@
       modal.classList.remove("hide-ui");
 
       // Stop Audio Playback
-      const music = document.getElementById("weddingMusic");
+      const music = document.getElementById("BGMMusic");
       music.pause();
       music.currentTime = 0;
       isMusicPlaying = false;

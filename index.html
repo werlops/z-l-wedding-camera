@@ -102,9 +102,49 @@
     #slideshowContent { max-width: 95vw; max-height: 95vh; display: flex; justify-content: center; align-items: center; }
     #slideshowContent img, #slideshowContent video { max-width: 95vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 0 30px rgba(255,255,255,0.1); object-fit: contain; }
     .slideshow-counter { position: absolute; bottom: 20px; color: rgba(255,255,255,0.7); font-size: 14px; letter-spacing: 1px; }
+
+    /* Countdown Lock Overlay Styles */
+    #lockOverlay { display: flex; position: fixed; z-index: 9999; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(250, 247, 242, 0.98); backdrop-filter: blur(10px); justify-content: center; align-items: center; padding: 20px; }
+    .lock-card { background: #ffffff; border-radius: 24px; padding: 32px 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.12); max-width: 380px; width: 100%; border: 1px solid #eae2d6; text-align: center; }
+    .lock-card h2 { font-family: 'Georgia', serif; color: #4a3e3d; font-size: 22px; margin-bottom: 8px; }
+    .lock-card p { font-size: 14px; color: #6f6053; margin-bottom: 20px; line-height: 1.4; }
+    .timer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .timer-box { background: #f7f2eb; border: 1px solid #eae2d6; border-radius: 12px; padding: 10px 4px; }
+    .timer-val { font-size: 20px; font-weight: 700; color: #4a3e3d; display: block; }
+    .timer-unit { font-size: 10px; color: #8c7a6b; text-transform: uppercase; letter-spacing: 0.5px; }
+    .passcode-section { margin-top: 18px; border-top: 1px solid #eae2d6; padding-top: 18px; }
+    .passcode-section label { display: block; font-size: 11px; color: #8c7a6b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .passcode-row { display: flex; gap: 8px; }
+    .passcode-row input { flex: 1; padding: 10px; border: 1px solid #d9d0c5; border-radius: 10px; text-align: center; font-size: 16px; letter-spacing: 2px; outline: none; background: #fdfbf7; }
+    .passcode-row button { padding: 10px 16px; border-radius: 10px; background: #8c7a6b; color: white; border: none; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .passcode-row button:hover { background: #726255; }
   </style>
 </head>
 <body>
+
+  <!-- Lock Overlay Pop-up -->
+  <div id="lockOverlay">
+    <div class="lock-card">
+      <div style="font-size: 36px; margin-bottom: 8px;">⏳</div>
+      <h2>Coming Soon!</h2>
+      <p>Zi Yan & Lawrence's Wedding Camera will unlock automatically on <strong>November 21, 2026 at 2:00 PM</strong>.</p>
+      
+      <div class="timer-grid">
+        <div class="timer-box"><span id="timerDays" class="timer-val">00</span><span class="timer-unit">Days</span></div>
+        <div class="timer-box"><span id="timerHours" class="timer-val">00</span><span class="timer-unit">Hours</span></div>
+        <div class="timer-box"><span id="timerMins" class="timer-val">00</span><span class="timer-unit">Mins</span></div>
+        <div class="timer-box"><span id="timerSecs" class="timer-val">00</span><span class="timer-unit">Secs</span></div>
+      </div>
+
+      <div class="passcode-section">
+        <label for="bypassPasscode">Early Access Passcode</label>
+        <div class="passcode-row">
+          <input type="password" id="bypassPasscode" placeholder="Enter code" maxlength="8" />
+          <button onclick="checkBypassPasscode()">Unlock</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Upload Card -->
   <div class="card">
@@ -269,6 +309,11 @@
     let isAdmin = false;
     let activePasscode = "";
 
+    // Lock Overlay & Countdown State
+    const UNLOCK_DATE = new Date("2026-11-21T14:00:00").getTime();
+    const BYPASS_CODE = "9988";
+    let countdownInterval = null;
+
     // Lightbox State
     let lightboxIndex = -1;
     let touchStartX = 0;
@@ -294,6 +339,9 @@
     dbRequest.onsuccess = (e) => { db = e.target.result; syncOfflineQueue(); };
 
     window.onload = function() {
+      // Check Lock Status
+      initLockTimer();
+
       const savedName = localStorage.getItem("wedding_guest_name");
       if (savedName) document.getElementById("guestName").value = savedName;
       
@@ -312,6 +360,55 @@
       document.addEventListener("visibilitychange", handleVisibilityOrFocus);
       window.addEventListener("focus", handleVisibilityOrFocus);
     };
+
+    /* Countdown Lock System Logic */
+    function initLockTimer() {
+      if (localStorage.getItem("wedding_unlocked_bypass") === "true") {
+        unlockApp();
+        return;
+      }
+
+      updateCountdown();
+      countdownInterval = setInterval(updateCountdown, 1000);
+    }
+
+    function updateCountdown() {
+      const now = new Date().getTime();
+      const diff = UNLOCK_DATE - now;
+
+      if (diff <= 0) {
+        clearInterval(countdownInterval);
+        unlockApp();
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+      document.getElementById("timerDays").innerText = String(days).padStart(2, '0');
+      document.getElementById("timerHours").innerText = String(hours).padStart(2, '0');
+      document.getElementById("timerMins").innerText = String(mins).padStart(2, '0');
+      document.getElementById("timerSecs").innerText = String(secs).padStart(2, '0');
+    }
+
+    function checkBypassPasscode() {
+      const val = document.getElementById("bypassPasscode").value.trim();
+      if (val === BYPASS_CODE) {
+        localStorage.setItem("wedding_unlocked_bypass", "true");
+        if (countdownInterval) clearInterval(countdownInterval);
+        unlockApp();
+      } else {
+        alert("Incorrect passcode.");
+        document.getElementById("bypassPasscode").value = "";
+      }
+    }
+
+    function unlockApp() {
+      const overlay = document.getElementById("lockOverlay");
+      if (overlay) overlay.style.display = "none";
+    }
 
     function updateNetworkStatus() {
       const banner = document.getElementById("offlineBanner");

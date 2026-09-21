@@ -44,19 +44,24 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.15); } }
 
-    /* --- OBVIOUS & DRAMATIC HEART POP ANIMATIONS --- */
-    @keyframes heartPopLarge {
-      0% { transform: scale(0.1) rotate(-20deg); opacity: 0; }
-      40% { transform: scale(2.5) rotate(10deg); opacity: 1; filter: drop-shadow(0 0 12px rgba(231, 76, 60, 0.9)); }
-      60% { transform: scale(0.85) rotate(-5deg); opacity: 1; }
-      80% { transform: scale(1.3) rotate(3deg); opacity: 1; }
-      100% { transform: scale(1) rotate(0deg); opacity: 1; }
-    }
-
-    @keyframes heartPulseContinuous {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.22); }
-      100% { transform: scale(1); }
+    /* --- Heart Animation: Expands ~1/3 image space before returning --- */
+    @keyframes bigHeartPop {
+      0% {
+        transform: scale(0.2);
+        opacity: 0;
+      }
+      45% {
+        transform: scale(6.5); /* Scales up significantly (~1/3 image space) */
+        opacity: 1;
+      }
+      60% {
+        transform: scale(6.5);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
 
     /* Gallery & Sorting */
@@ -84,6 +89,7 @@
     /* Modals & Lightbox Interactive View */
     .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); justify-content: center; align-items: center; flex-direction: column; padding: 20px; touch-action: pan-y; }
     
+    /* Interactive Lightbox CSS */
     .lightbox-wrapper { position: relative; width: 100%; max-width: 90vw; max-height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center; user-select: none; }
     .lightbox-media-container { position: relative; display: flex; justify-content: center; align-items: center; max-width: 100%; max-height: 75vh; }
     .lightbox-media-container img, .lightbox-media-container video { max-width: 90vw; max-height: 72vh; border-radius: 12px; object-fit: contain; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
@@ -101,6 +107,7 @@
     .lightbox-like-btn:active { transform: scale(0.9); }
     .lightbox-like-btn.reacted { background: #e74c3c; border-color: #e74c3c; color: white; }
 
+    /* Admin Delete Lightbox Action Button */
     .lightbox-delete-btn { display: none; background: rgba(217, 83, 79, 0.85); border: 1px solid rgba(255, 255, 255, 0.4); color: white; border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; backdrop-filter: blur(4px); transition: background 0.2s, transform 0.15s; }
     .lightbox-delete-btn:hover { background: rgba(217, 83, 79, 1); }
     .lightbox-delete-btn:active { transform: scale(0.9); }
@@ -167,34 +174,33 @@
       animation: fadeIn 0.8s ease-in-out forwards;
     }
 
-    /* DRAMATIC ANIMATED SLIDESHOW LIKES BADGE OVERLAY */
+    /* --- Enhanced Badge Styling with Red Tint & Glowing Border --- */
     .slideshow-like-badge {
       position: absolute;
-      bottom: 18px;
-      right: 18px;
-      background: rgba(231, 76, 60, 0.25);
+      bottom: 16px;
+      right: 16px;
+      background: rgba(215, 38, 56, 0.88); /* Bright semi-transparent red tint */
       backdrop-filter: blur(8px);
       color: #ffffff;
-      padding: 6px 14px;
-      border-radius: 30px;
-      font-size: 16px;
+      padding: 8px 16px; /* Increased padding */
+      border-radius: 28px;
+      font-size: 18px; /* Larger font size */
       font-weight: 800;
       display: flex;
       align-items: center;
       gap: 8px;
-      z-index: 25;
-      box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.4);
+      z-index: 20;
+      border: 2px solid #ff4d4d; /* Glowing border */
+      box-shadow: 0 0 16px rgba(255, 77, 77, 0.8), 0 4px 12px rgba(0, 0, 0, 0.5); /* Glowing outline and shadow */
       pointer-events: none;
-      animation: fadeIn 0.3s ease-out forwards;
     }
 
+    /* Animated Pop-Up Heart Icon */
     .slideshow-like-badge .heart-icon-pop {
       display: inline-block;
-      font-size: 20px;
       transform-origin: center center;
-      animation: 
-        heartPopLarge 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
-        heartPulseContinuous 1.2s ease-in-out 0.9s infinite alternate;
+      animation: bigHeartPop 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      font-size: 20px;
     }
 
     /* Scatter Collage Style Animations */
@@ -278,6 +284,12 @@
     @media (max-width: 768px) {
       .scatter-center .scatter-item { max-width: 82vw; max-height: 55vh; }
       .scatter-edge .scatter-item { max-width: 48vw; max-height: 35vh; }
+      .slideshow-like-badge {
+        font-size: 15px;
+        padding: 6px 12px;
+        bottom: 10px;
+        right: 10px;
+      }
     }
 
     /* Top Slideshow Control Buttons */
@@ -509,22 +521,25 @@
     let activeScatterElements = [];
     let edgeSlotIndex = 0;
 
+    // Multi-directional Edge Slots for balanced all-around screen coverage
     const edgeSlots = [
-      { top: "22%", left: "22%", rot: "-6deg" },
-      { top: "22%", left: "78%", rot: "7deg" },
-      { top: "78%", left: "22%", rot: "5deg" },
-      { top: "78%", left: "78%", rot: "-8deg" },
-      { top: "50%", left: "16%", rot: "9deg" },
-      { top: "50%", left: "84%", rot: "-10deg" },
-      { top: "16%", left: "50%", rot: "-4deg" },
-      { top: "84%", left: "50%", rot: "4deg" }
+      { top: "22%", left: "22%", rot: "-6deg" },  // Top-Left
+      { top: "22%", left: "78%", rot: "7deg" },   // Top-Right
+      { top: "78%", left: "22%", rot: "5deg" },   // Bottom-Left
+      { top: "78%", left: "78%", rot: "-8deg" },  // Bottom-Right
+      { top: "50%", left: "16%", rot: "9deg" },   // Middle-Left
+      { top: "50%", left: "84%", rot: "-10deg" },  // Middle-Right
+      { top: "16%", left: "50%", rot: "-4deg" },  // Top-Center
+      { top: "84%", left: "50%", rot: "4deg" }    // Bottom-Center
     ];
 
+    // Inactivity State
     let inactivityTimer = null;
     const INACTIVITY_TIMEOUT_MS = 3000;
 
+    // Refresh Optimization state
     let lastFetchTimestamp = 0;
-    const REFRESH_THROTTLE_MS = 120000;
+    const REFRESH_THROTTLE_MS = 120000; // 2 minutes limit
 
     let db;
     const dbRequest = indexedDB.open("WeddingAppDB", 1);
@@ -544,8 +559,10 @@
       window.addEventListener('offline', updateNetworkStatus);
       updateNetworkStatus();
 
+      // Keyboard support for Lightbox
       window.addEventListener('keydown', handleGlobalKeydown);
 
+      // Touch gesture support for Lightbox swipe
       const lightboxModal = document.getElementById("lightbox");
       lightboxModal.addEventListener('touchstart', (e) => {
         touchStartX = e.changedTouches[0].screenX;
@@ -556,8 +573,10 @@
         handleSwipeGesture();
       }, { passive: true });
 
+      // Initial Fetch
       fetchGalleryData(true);
 
+      // Refresh Optimization Listener (Visibility Change & Window Focus)
       document.addEventListener("visibilitychange", handleVisibilityOrFocus);
       window.addEventListener("focus", handleVisibilityOrFocus);
     };
@@ -572,6 +591,7 @@
       }
     }
 
+    /* Keyboard navigation */
     function handleGlobalKeydown(e) {
       const lightbox = document.getElementById("lightbox");
       if (lightbox.style.display === "flex") {
@@ -581,6 +601,7 @@
       }
     }
 
+    /* Swipe Gesture Support */
     function handleSwipeGesture() {
       const lightbox = document.getElementById("lightbox");
       if (lightbox.style.display !== "flex") return;
@@ -592,6 +613,7 @@
       }
     }
 
+    /* Screen Wake Lock API Helpers */
     async function requestWakeLock() {
       try {
         if ('wakeLock' in navigator) {
@@ -610,6 +632,7 @@
       }
     }
 
+    /* Inactivity & UI Auto-Hide Handlers */
     function resetInactivityTimer() {
       const modal = document.getElementById("slideshowModal");
       modal.classList.remove("hide-ui");
@@ -626,6 +649,7 @@
       }
     }
 
+    /* Refresh Optimization & Smart Throttle Handler */
     function handleVisibilityOrFocus() {
       if (document.visibilityState === 'visible' && document.getElementById("slideshowModal").style.display === "flex") {
         requestWakeLock();
@@ -662,6 +686,7 @@
             allGalleryItems = (data.items || []).slice().reverse();
             applySortAndRender();
 
+            // Refresh open lightbox content if currently viewing
             if (lightboxIndex >= 0 && lightboxIndex < displayedItems.length) {
               renderLightboxContent();
             }
@@ -673,6 +698,7 @@
         });
     }
 
+    /* Guest Likes / Reactions Storage */
     function getReactedMap() {
       const raw = localStorage.getItem("wedding_reacted_items");
       return raw ? JSON.parse(raw) : {};
@@ -811,6 +837,7 @@
       document.getElementById("galleryGrid").scrollIntoView({ behavior: "smooth" });
     }
 
+    /* Lightbox Modal & Navigation */
     function openLightbox(index) {
       lightboxIndex = index;
       renderLightboxContent();
@@ -865,6 +892,7 @@
       }
     }
 
+    /* Admin Live Slideshow Mode with Wake Lock, Dynamic Layouts & Music */
     function toggleMusic() {
       const music = document.getElementById("BGMMusic");
       const btn = document.getElementById("btnToggleMusic");
@@ -943,7 +971,6 @@
 
       if (!item) return;
 
-      // Badge HTML featuring the dramatic heartPopLarge animation
       const likeBadgeHtml = (item.likes && item.likes > 0) 
         ? `<div class="slideshow-like-badge"><span class="heart-icon-pop">❤️</span> ${item.likes}</div>` 
         : '';
@@ -965,6 +992,8 @@
           </div>`;
       } else {
         // Collage Scatter Mode
+        
+        // 1. Shift current center image to edge
         if (activeScatterElements.length > 0) {
           const currentCenter = activeScatterElements[activeScatterElements.length - 1];
           currentCenter.el.classList.remove("scatter-center");
@@ -978,12 +1007,14 @@
           currentCenter.el.style.transform = `translate(-50%, -50%) rotate(${slot.rot}) scale(0.92)`;
         }
 
+        // 2. Limit maximum scattered items
         if (activeScatterElements.length >= 8) {
           const oldest = activeScatterElements.shift();
           oldest.el.classList.add("scatter-exit");
           setTimeout(() => { if (oldest.el.parentNode) oldest.el.remove(); }, 2500);
         }
 
+        // 3. Create incoming wrapper container
         const wrapperEl = document.createElement("div");
         wrapperEl.className = "scatter-wrapper";
 
@@ -1032,6 +1063,7 @@
       const modal = document.getElementById("slideshowModal");
       modal.classList.remove("hide-ui");
 
+      // Stop Audio Playback
       const music = document.getElementById("BGMMusic");
       music.pause();
       music.currentTime = 0;
@@ -1045,6 +1077,7 @@
       releaseWakeLock();
     }
 
+    /* Admin Access & Passcode */
     function openAdminModal() {
       document.getElementById("adminModal").style.display = "flex";
       document.getElementById("adminPasscode").value = "";

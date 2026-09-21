@@ -66,11 +66,26 @@
     .pagination-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 16px; padding-top: 12px; border-top: 1px solid #eae2d6; }
     .page-info { font-size: 13px; color: #6f6053; font-weight: 500; }
 
-    .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
-    .modal img { max-width: 90%; max-height: 70vh; border-radius: 12px; }
+    /* Updated Pop-up / Fullscreen Lightbox Modal */
+    .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.92); backdrop-filter: blur(6px); justify-content: center; align-items: center; flex-direction: column; padding: 12px; }
+    
+    .lightbox-container { position: relative; max-width: 92vw; max-height: 85vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .lightbox-media { max-width: 90vw; max-height: 70vh; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); object-fit: contain; }
+    
+    .lightbox-controls { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 400px; margin-top: 14px; gap: 12px; background: rgba(255, 255, 255, 0.12); padding: 8px 16px; border-radius: 30px; backdrop-filter: blur(10px); }
+    .lightbox-counter { color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 500; }
+    .lightbox-action-btn { background: #ffffff; border: none; border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 700; color: #4a3e3d; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .lightbox-action-btn.reacted { color: #e74c3c; }
+
+    .lightbox-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; font-size: 28px; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); transition: background 0.2s; z-index: 1002; }
+    .lightbox-arrow:hover { background: rgba(255,255,255,0.4); }
+    .lightbox-arrow.prev { left: 10px; }
+    .lightbox-arrow.next { right: 10px; }
+
     .modal-card { background: white; padding: 24px; border-radius: 20px; max-width: 320px; width: 90%; text-align: center; }
     .modal-card img { width: 200px; height: 200px; margin: 12px 0; }
-    .modal-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 28px; cursor: pointer; background: none; border: none; z-index: 1001; }
+    .modal-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 32px; cursor: pointer; background: none; border: none; z-index: 1003; opacity: 0.8; }
+    .modal-close:hover { opacity: 1; }
 
     .upload-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 2000; justify-content: center; align-items: center; pointer-events: auto; }
     .upload-modal-card { background: #ffffff; padding: 28px 20px; border-radius: 20px; max-width: 340px; width: 88%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
@@ -166,10 +181,25 @@
 
   <button class="btn-link" onclick="openAdminModal()" style="margin-bottom: 20px; font-size: 11px; opacity: 0.6;">🔒 Admin Login</button>
 
-  <!-- Modals -->
+  <!-- Interactive Lightbox Pop-up -->
   <div id="lightbox" class="modal" onclick="closeLightbox()">
-    <button class="modal-close">&times;</button>
-    <div id="modalContent"></div>
+    <button class="modal-close" onclick="closeLightbox()">&times;</button>
+    <button class="lightbox-arrow prev" onclick="navigateLightbox(event, -1)">&#8249;</button>
+    <div class="lightbox-container" onclick="event.stopPropagation()">
+      <div id="modalContent"></div>
+      <div class="lightbox-controls">
+        <span class="lightbox-counter" id="lightboxCounter">1 of 1</span>
+        <div style="display: flex; gap: 8px;">
+          <button id="lightboxLikeBtn" class="lightbox-action-btn" onclick="toggleLightboxLike()">
+            ❤️ <span id="lightboxLikeCount">0</span>
+          </button>
+          <button id="lightboxDeleteBtn" class="lightbox-action-btn" style="display: none; background: #d9534f; color: white;" onclick="deleteCurrentLightboxItem()">
+            🗑️ Delete
+          </button>
+        </div>
+      </div>
+    </div>
+    <button class="lightbox-arrow next" onclick="navigateLightbox(event, 1)">&#8250;</button>
   </div>
 
   <div id="slideshowModal">
@@ -239,6 +269,11 @@
     let isAdmin = false;
     let activePasscode = "";
 
+    // Lightbox State
+    let lightboxIndex = -1;
+    let touchStartX = 0;
+    let touchEndX = 0;
+
     // Slideshow state
     let slideshowTimer = null;
     let slideshowIndex = 0;
@@ -266,10 +301,14 @@
       window.addEventListener('offline', updateNetworkStatus);
       updateNetworkStatus();
 
+      // Keyboard & Swipe Controls for Lightbox
+      document.addEventListener('keydown', handleLightboxKeyboard);
+      setupLightboxTouchSwipe();
+
       // Initial Fetch
       fetchGalleryData(true);
 
-      // Refresh Optimization Listener (Visibility Change & Window Focus)
+      // Refresh Optimization Listener
       document.addEventListener("visibilitychange", handleVisibilityOrFocus);
       window.addEventListener("focus", handleVisibilityOrFocus);
     };
@@ -284,7 +323,6 @@
       }
     }
 
-    /* Screen Wake Lock API Helpers */
     async function requestWakeLock() {
       try {
         if ('wakeLock' in navigator) {
@@ -303,14 +341,11 @@
       }
     }
 
-    /* Refresh Optimization & Smart Throttle Handler */
     function handleVisibilityOrFocus() {
-      // Re-acquire Wake Lock if returning to tab while slideshow active
       if (document.visibilityState === 'visible' && document.getElementById("slideshowModal").style.display === "flex") {
         requestWakeLock();
       }
 
-      // Check throttle duration before triggering API call
       if (document.visibilityState === 'visible') {
         const timeElapsed = Date.now() - lastFetchTimestamp;
         if (timeElapsed > REFRESH_THROTTLE_MS) {
@@ -341,6 +376,9 @@
             document.getElementById("photoCount").innerText = data.count;
             allGalleryItems = (data.items || []).slice().reverse();
             applySortAndRender();
+            if (lightboxIndex !== -1) {
+              updateLightboxContent();
+            }
           }
         })
         .catch(() => {
@@ -360,7 +398,7 @@
     }
 
     async function toggleLike(e, fileId) {
-      e.stopPropagation();
+      if (e) e.stopPropagation();
       const reactedMap = getReactedMap();
       const isCurrentlyReacted = !!reactedMap[fileId];
       const newReactedState = !isCurrentlyReacted;
@@ -374,6 +412,7 @@
       }
 
       applySortAndRender();
+      if (lightboxIndex !== -1) updateLightboxContent();
 
       try {
         await fetch(API_URL, {
@@ -420,6 +459,7 @@
       const reactedMap = getReactedMap();
 
       pageItems.forEach((item, index) => {
+        const globalIndex = startIndex + index;
         const div = document.createElement("div");
         div.className = "gallery-item";
         const fId = item.fileId || item.id;
@@ -435,17 +475,11 @@
         mediaHtml += `<button class="like-btn ${isReacted ? 'reacted' : ''}" onclick="toggleLike(event, '${fId}')">${isReacted ? '❤️' : '♡'} ${item.likes || 0}</button>`;
 
         if (isAdmin) {
-          mediaHtml += `<button class="admin-delete-btn" onclick="deleteItem(event, '${fId}', ${startIndex + index})">&times;</button>`;
+          mediaHtml += `<button class="admin-delete-btn" onclick="deleteItem(event, '${fId}', ${globalIndex})">&times;</button>`;
         }
 
         div.innerHTML = mediaHtml;
-        div.onclick = () => {
-          if (item.mimeType.startsWith("video/")) {
-            window.open(item.viewUrl, "_blank");
-          } else {
-            openLightbox(item.fullUrl);
-          }
-        };
+        div.onclick = () => openLightbox(globalIndex);
 
         grid.appendChild(div);
       });
@@ -466,6 +500,109 @@
       document.getElementById("galleryGrid").scrollIntoView({ behavior: "smooth" });
     }
 
+    /* Fullscreen / Pop-up Lightbox Logic */
+    function openLightbox(index) {
+      if (!displayedItems || displayedItems.length === 0) return;
+      lightboxIndex = index;
+      document.getElementById("lightbox").style.display = "flex";
+      updateLightboxContent();
+    }
+
+    function closeLightbox() {
+      lightboxIndex = -1;
+      document.getElementById("lightbox").style.display = "none";
+      document.getElementById("modalContent").innerHTML = "";
+    }
+
+    function navigateLightbox(e, direction) {
+      if (e) e.stopPropagation();
+      if (lightboxIndex === -1) return;
+      
+      lightboxIndex = (lightboxIndex + direction + displayedItems.length) % displayedItems.length;
+      updateLightboxContent();
+    }
+
+    function updateLightboxContent() {
+      if (lightboxIndex < 0 || lightboxIndex >= displayedItems.length) return;
+
+      const item = displayedItems[lightboxIndex];
+      const fId = item.fileId || item.id;
+      const content = document.getElementById("modalContent");
+      const counter = document.getElementById("lightboxCounter");
+      const likeBtn = document.getElementById("lightboxLikeBtn");
+      const likeCountSpan = document.getElementById("lightboxLikeCount");
+      const deleteBtn = document.getElementById("lightboxDeleteBtn");
+
+      const reactedMap = getReactedMap();
+      const isReacted = !!reactedMap[fId];
+
+      if (item.mimeType.startsWith("video/")) {
+        content.innerHTML = `<video class="lightbox-media" src="${item.fullUrl}" controls autoplay loop playsinline></video>`;
+      } else {
+        content.innerHTML = `<img class="lightbox-media" src="${item.fullUrl}" />`;
+      }
+
+      counter.innerText = `${lightboxIndex + 1} of ${displayedItems.length}`;
+      likeCountSpan.innerText = item.likes || 0;
+
+      if (isReacted) {
+        likeBtn.classList.add("reacted");
+      } else {
+        likeBtn.classList.remove("reacted");
+      }
+
+      deleteBtn.style.display = isAdmin ? "inline-flex" : "none";
+    }
+
+    function toggleLightboxLike() {
+      if (lightboxIndex === -1) return;
+      const item = displayedItems[lightboxIndex];
+      const fId = item.fileId || item.id;
+      toggleLike(null, fId);
+    }
+
+    function deleteCurrentLightboxItem() {
+      if (lightboxIndex === -1) return;
+      const item = displayedItems[lightboxIndex];
+      const fId = item.fileId || item.id;
+
+      deleteItem({ stopPropagation: () => {} }, fId, lightboxIndex);
+
+      if (displayedItems.length === 0) {
+        closeLightbox();
+      } else {
+        lightboxIndex = lightboxIndex % displayedItems.length;
+        updateLightboxContent();
+      }
+    }
+
+    function handleLightboxKeyboard(e) {
+      const modal = document.getElementById("lightbox");
+      if (modal.style.display !== "flex") return;
+
+      if (e.key === "ArrowLeft") navigateLightbox(null, -1);
+      if (e.key === "ArrowRight") navigateLightbox(null, 1);
+      if (e.key === "Escape") closeLightbox();
+    }
+
+    function setupLightboxTouchSwipe() {
+      const modal = document.getElementById("lightbox");
+      modal.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+
+      modal.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipeGesture();
+      }, { passive: true });
+    }
+
+    function handleSwipeGesture() {
+      const threshold = 50;
+      if (touchEndX < touchStartX - threshold) navigateLightbox(null, 1);
+      if (touchEndX > touchStartX + threshold) navigateLightbox(null, -1);
+    }
+
     /* Admin Live Slideshow Mode with Wake Lock */
     async function startSlideshow() {
       if (!allGalleryItems || allGalleryItems.length === 0) {
@@ -473,7 +610,6 @@
         return;
       }
       
-      // Activate Screen Wake Lock
       await requestWakeLock();
 
       slideshowIndex = 0;
@@ -506,8 +642,6 @@
       if (slideshowTimer) clearInterval(slideshowTimer);
       document.getElementById("slideshowModal").style.display = "none";
       document.getElementById("slideshowContent").innerHTML = "";
-      
-      // Release Screen Wake Lock
       releaseWakeLock();
     }
 
@@ -596,7 +730,7 @@
     }
 
     async function deleteItem(e, fileId, index) {
-      e.stopPropagation();
+      if (e && e.stopPropagation) e.stopPropagation();
       if (!confirm("Are you sure you want to delete this photo/video?")) return;
 
       try {
@@ -612,17 +746,6 @@
 
       allGalleryItems.splice(index, 1);
       applySortAndRender();
-    }
-
-    function openLightbox(url) {
-      const modal = document.getElementById("lightbox");
-      const content = document.getElementById("modalContent");
-      content.innerHTML = `<img src="${url}" />`;
-      modal.style.display = "flex";
-    }
-
-    function closeLightbox() {
-      document.getElementById("lightbox").style.display = "none";
     }
 
     function openQRModal() {
@@ -734,7 +857,6 @@
         thankYouBox.style.display = "block";
         event.target.value = "";
         
-        // Force refresh upon successful upload
         fetchGalleryData(true);
       } else {
         status.innerText = "Upload queued. Will retry when connection stabilizes.";
